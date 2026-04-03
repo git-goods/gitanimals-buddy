@@ -46,16 +46,16 @@ current_dir=$(echo "$INPUT" | jq -r '.workspace.current_dir // ""' 2>/dev/null)
 current_dir=$(basename "$current_dir" 2>/dev/null || echo "")
 branch=$(git branch --show-current 2>/dev/null || echo "")
 
-# Usage (from existing cache if available)
+# Usage (from self-contained JSONL-based cache)
 usage_text=""
-cache_file="$HOME/.claude/.statusline-usage-cache"
-if [ -f "$cache_file" ]; then
-  cache_ts=$(grep "^TIMESTAMP=" "$cache_file" 2>/dev/null | cut -d= -f2)
+usage_cache_file="$HOME/.cache/gitanimals/usage-cache.txt"
+if [ -f "$usage_cache_file" ]; then
+  u_cache_ts=$(grep "^TIMESTAMP=" "$usage_cache_file" 2>/dev/null | cut -d= -f2)
   now_ts=$(date +%s)
-  if [ -n "$cache_ts" ] && [ $(( now_ts - cache_ts )) -lt 300 ]; then
-    cache_util=$(grep "^UTILIZATION=" "$cache_file" | cut -d= -f2)
+  if [ -n "$u_cache_ts" ] && [ $(( now_ts - u_cache_ts )) -lt 300 ]; then
+    cache_util=$(grep "^UTILIZATION=" "$usage_cache_file" | cut -d= -f2)
+    resets_at=$(grep "^RESETS_AT=" "$usage_cache_file" | cut -d= -f2)
     if [ -n "$cache_util" ]; then
-      # Color
       u_color="${GREEN}"
       [ "$cache_util" -ge 40 ] && u_color="${YELLOW}"
       [ "$cache_util" -ge 70 ] && u_color='\033[38;5;208m'
@@ -66,8 +66,29 @@ if [ -f "$cache_file" ]; then
       bar=""
       for ((i=0; i<filled; i++)); do bar+="▓"; done
       for ((i=0; i<empty; i++)); do bar+="░"; done
-      usage_text=$(printf '%b' "${u_color}Usage: ${cache_util}% ${bar}${R}")
+      # Reset time
+      reset_display=""
+      if [ -n "$resets_at" ]; then
+        clean_ts=$(echo "$resets_at" | sed 's/\.[0-9]*Z$//' | sed 's/Z$//')
+        if [ "$(uname)" = "Darwin" ]; then
+          reset_epoch=$(date -juf "%Y-%m-%dT%H:%M:%S" "$clean_ts" +%s 2>/dev/null || echo "")
+        else
+          reset_epoch=$(date -u -d "$clean_ts" +%s 2>/dev/null || echo "")
+        fi
+        if [ -n "$reset_epoch" ]; then
+          if [ "$(uname)" = "Darwin" ]; then
+            reset_time=$(date -r "$reset_epoch" "+%I:%M %p" 2>/dev/null)
+          else
+            reset_time=$(date -d "@$reset_epoch" "+%I:%M %p" 2>/dev/null)
+          fi
+          [ -n "$reset_time" ] && reset_display=" → ${reset_time}"
+        fi
+      fi
+      usage_text=$(printf '%b' "${u_color}Usage: ${cache_util}% ${bar}${reset_display}${R}")
     fi
+  else
+    # Cache stale — trigger background refresh
+    bash "$SCRIPT_DIR/fetch-usage.sh" &>/dev/null &
   fi
 fi
 

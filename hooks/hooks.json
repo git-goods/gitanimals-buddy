@@ -2,8 +2,8 @@
   "hooks": [
     {
       "event": "SessionStart",
-      "command": "bash ./scripts/fetch-pet.sh",
-      "description": "Fetch pet data from GitAnimals API on session start"
+      "command": "bash ./scripts/fetch-pet.sh && bash ./scripts/fetch-usage.sh",
+      "description": "Fetch pet data and usage stats on session start"
     }
   ]
 }
