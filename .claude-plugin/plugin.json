@@ -1,0 +1,8 @@
+{
+  "name": "gitanimals-buddy",
+  "version": "0.1.0",
+  "description": "GitAnimals pet companion for Claude Code — show your pets in the terminal",
+  "author": "git-goods",
+  "homepage": "https://gitanimals.org",
+  "repository": "https://github.com/git-goods/gitanimals"
+}

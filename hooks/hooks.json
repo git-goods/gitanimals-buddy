@@ -1,0 +1,9 @@
+{
+  "hooks": [
+    {
+      "event": "SessionStart",
+      "command": "bash ./scripts/fetch-pet.sh",
+      "description": "Fetch pet data from GitAnimals API on session start"
+    }
+  ]
+}

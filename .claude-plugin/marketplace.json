@@ -1,0 +1,31 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "gitanimals-buddy",
+  "description": "GitAnimals pet companion for Claude Code — show your pets in the terminal statusLine",
+  "owner": {
+    "name": "git-goods",
+    "email": "gitanimals@git-goods.org"
+  },
+  "plugins": [
+    {
+      "name": "gitanimals-buddy",
+      "description": "GitAnimals pet companion for Claude Code. Display your GitHub-earned pets as ASCII art in the terminal statusLine with speech bubbles and level indicators.",
+      "version": "0.1.0",
+      "author": {
+        "name": "git-goods"
+      },
+      "source": "./",
+      "category": "companion",
+      "homepage": "https://github.com/git-goods/gitanimals-buddy",
+      "tags": [
+        "pet",
+        "companion",
+        "statusline",
+        "ascii-art",
+        "gitanimals",
+        "gamification"
+      ]
+    }
+  ],
+  "version": "0.1.0"
+}
