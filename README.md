@@ -1,46 +1,64 @@
-# 🐾 GitAnimals Buddy for Claude Code
+# GitAnimals Buddy for Claude Code
 
-GitAnimals의 펫을 Claude Code 터미널 statusLine에서 함께 키우는 companion 플러그인.
+> GitAnimals의 펫을 Claude Code 터미널에서 함께 키우는 companion 플러그인
+
+GitHub 활동으로 키운 펫이 코딩 세션을 함께합니다. ASCII 아트로 렌더링되고, 말풍선으로 반응하며, 터미널 크기에 맞게 자동 적응합니다.
+
+## 미리보기
+
+**Full 모드** (터미널 높이 ≥ 15, 너비 ≥ 50):
+```
+   (\/) (\/)    my-project │ ⎇ main
+   ( ^.^ )  💬 Ship it!
+   / >  <\     Opus 4.6 │ Ctx: 23%
+  (__\_\_)     Usage: 40% ▓▓▓▓░░░░░░
+ RABBIT Lv.106 ★★★★★
+```
+
+**Compact 모드** (작은 터미널):
+```
+my-project │ ⎇ main │ Opus 4.6 │ Ctx: 23%
+(°..°) RABBIT Lv.106 ★★★★★ │ Ship it!
+```
 
 ## 설치
 
-### 1. 클론
+### 방법 1: 마켓플레이스 (추천)
+
+Claude Code 내에서:
+```
+/plugin marketplace add git-goods/gitanimals-buddy
+/plugin install gitanimals-buddy
+```
+
+### 방법 2: 원스텝 설치
 
 ```bash
 git clone https://github.com/git-goods/gitanimals-buddy.git ~/.claude/plugins/gitanimals-buddy
+bash ~/.claude/plugins/gitanimals-buddy/install.sh
 ```
 
-### 2. 스크립트 권한 부여
+### 방법 3: 수동 설치
 
 ```bash
+# 1. 클론
+git clone https://github.com/git-goods/gitanimals-buddy.git ~/.claude/plugins/gitanimals-buddy
+
+# 2. 권한 부여
 chmod +x ~/.claude/plugins/gitanimals-buddy/scripts/*.sh
 chmod +x ~/.claude/plugins/gitanimals-buddy/scripts/sprites/*.sh
-```
 
-### 3. Claude Code 설정에 statusLine 추가
-
-`~/.claude/settings.json`에 다음을 추가:
-
-```json
+# 3. ~/.claude/settings.json에 statusLine 추가
 {
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/plugins/gitanimals-buddy/scripts/statusline.sh",
-    "padding": 1
+    "padding": 7
   }
 }
-```
 
-### 4. GitAnimals 유저네임 설정
-
-```bash
-mkdir -p ~/.claude
+# 4. 유저네임 설정
 echo '{"username": "YOUR_GITHUB_USERNAME", "hidden": false}' > ~/.claude/gitanimals.json
-```
-
-또는 Claude Code 내에서:
-```
-/animals login YOUR_GITHUB_USERNAME
 ```
 
 ## 사용법
@@ -48,81 +66,102 @@ echo '{"username": "YOUR_GITHUB_USERNAME", "hidden": false}' > ~/.claude/gitanim
 | 커맨드 | 설명 |
 |--------|------|
 | `/animals` | 현재 활성 펫 표시 |
-| `/animals login <username>` | 유저네임 설정 |
-| `/animals list` | 보유 펫 목록 |
+| `/animals login <username>` | GitAnimals 유저네임 설정 |
+| `/animals list` | 보유 펫 목록 조회 |
 | `/animals select <pet_type>` | 활성 펫 변경 |
-| `/animals hide` | 펫 숨기기 |
+| `/animals hide` | statusLine에서 펫 숨기기 |
 | `/animals show` | 펫 다시 표시 |
 
-## 프리뷰
+## 지원 펫
 
-설치 전에 어떻게 보이는지 확인:
+### Phase 1 — ASCII 스프라이트
 
-```bash
-# 모든 펫 미리보기
-bash scripts/preview.sh all
+| 펫 | Full 모드 | Compact |
+|-----|-----------|---------|
+| Goose | `(o>)` | `(o>)` |
+| Little Chick | 병아리 | `(°v°)` |
+| Penguin | 펭귄 | `(^^)` |
+| Cat | 고양이 | `(·.·)` |
+| Capybara | 카피바라 | `(*_*)` |
+| Rabbit | 토끼 | `(°..°)` |
 
-# 특정 펫 미리보기
-bash scripts/preview.sh goose 5
-bash scripts/preview.sh cat 12
-```
+미지원 펫은 generic fallback `(◦◦)`으로 표시됩니다.
 
-## 지원 펫 (Phase 1)
+### Compact 표정 (추가)
 
-| 펫 | ASCII |
-|-----|-------|
-| Goose | `(o>` |
-| Little Chick | `(°v°)` |
-| Penguin | `(^^)` |
-| Cat | `/\_/\` |
-| Capybara | `(*_*)` |
+Pig `(ꈍ.ꈍ)` · Slime `(~.~)` · Hamster `(•ᴥ•)` · Sloth `(-_-)`
 
-미지원 펫은 generic fallback으로 표시됩니다.
+## 레이아웃 시스템
 
-## 레이아웃
+터미널 크기에 따라 자동으로 레이아웃이 전환됩니다:
 
-**Full 모드** (터미널 폭 ≥ 100):
-```
-─── Opus 4.6 │ Ctx: ██░░░░░░░░ 23% │ $0.05 ───
-                                         (o>
-                                         (__)  💬 Nice commit!
-                                      /)/) ||
-                                      GOOSE Lv.5 ★☆☆☆☆
-```
+| 조건 | 모드 | 줄 수 |
+|------|------|-------|
+| 높이 ≥ 15 & 너비 ≥ 50 | **Full** — ASCII 스프라이트 + 말풍선 + status | 5줄 |
+| 높이 < 15 or 너비 < 50 | **Compact** — 표정 이모지 + 한줄 info | 2줄 |
 
-**Compact 모드** (터미널 폭 < 100):
-```
-─── Opus 4.6 │ Ctx: ██░░░░░░░░ 23% │ $0.05 ───
-─── Goose Lv.5 ★☆☆☆☆ │ Let's code! ───
-```
+### 표시 정보
 
-## 의존성
+- **프로젝트명** — 현재 디렉토리
+- **브랜치** — git 현재 브랜치
+- **모델** — Claude 모델명
+- **Context** — 컨텍스트 사용률 (색상: 초록 → 노랑 → 빨강)
+- **Usage** — API 사용률 + 프로그레스 바 (캐시 기반)
+- **펫 레벨** — ★ 기반 표시 (Lv/3, 최대 5개)
+- **말풍선** — 컨텍스트 사용률에 따른 반응 메시지
 
-- `jq` (JSON 파싱)
-- `curl` (API 호출)
-- `git` (contribution 감지)
-- bash 4.0+
+## 동작 방식
+
+- **API**: `https://render.gitanimals.org/users/{username}`에서 펫 데이터 조회
+- **캐시**: 300초 TTL, 만료 시 백그라운드 갱신 (statusLine 블로킹 없음)
+- **자동 선택**: 가장 레벨 높은 펫을 자동 표시 (수동 선택 가능)
+- **로딩 상태**: 캐시 없을 때 스피너 애니메이션 표시
 
 ## 구조
 
 ```
 gitanimals-buddy/
-├── .claude-plugin/plugin.json    # 플러그인 메타
-├── commands/animals.md           # /animals 커맨드
-├── hooks/hooks.json              # SessionStart hook
+├── .claude-plugin/
+│   ├── plugin.json          # 플러그인 메타데이터
+│   └── marketplace.json     # 마켓플레이스 레지스트리
+├── commands/animals.md      # /animals 슬래시 커맨드
+├── hooks/hooks.json         # SessionStart hook (펫 데이터 prefetch)
+├── config/
+│   ├── gitanimals.json      # 설정 예시
+│   └── settings-example.json
 ├── scripts/
-│   ├── statusline.sh             # 메인 렌더러
-│   ├── fetch-pet.sh              # API fetcher
-│   ├── preview.sh                # 프리뷰 도구
-│   └── sprites/                  # ASCII 스프라이트
+│   ├── statusline.sh        # 메인 렌더러 (adaptive layout)
+│   ├── fetch-pet.sh         # API fetcher (백그라운드)
+│   ├── preview.sh           # 로컬 프리뷰
+│   ├── quick-test.sh        # 테스트 도구
+│   └── sprites/             # ASCII 스프라이트
 │       ├── goose.sh
 │       ├── little_chick.sh
 │       ├── penguin.sh
 │       ├── cat.sh
 │       ├── capybara.sh
+│       ├── rabbit.sh
 │       └── fallback.sh
+├── install.sh               # 원스텝 설치
+├── PUBLISHING.md            # 마켓플레이스 등록 가이드
 └── README.md
 ```
+
+## 의존성
+
+- `jq` — JSON 파싱
+- `curl` — API 호출
+- `git` — 브랜치 감지
+- bash 4.0+
+
+## GitAnimals
+
+[GitAnimals](https://gitanimals.org)는 GitHub 활동으로 펫을 수집하고 성장시키는 서비스입니다.
+
+- 커밋 30회마다 새 펫 뽑기
+- contribution이 펫 레벨을 올림
+- 50종 이상의 펫 (희귀도별)
+- GitHub README에 SVG로 표시
 
 ## 라이선스
 
