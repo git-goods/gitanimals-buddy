@@ -20,7 +20,9 @@ GitAnimals Buddy — Claude Code용 statusLine 플러그인. GitAnimals 펫을 A
 ```
 scripts/statusline.sh    # 메인 진입점 — stdin으로 세션 JSON 받아서 stdout으로 렌더링
 scripts/fetch-pet.sh     # SessionStart hook에서 백그라운드 실행
-scripts/mood.sh          # usage % → mood 매핑, mood별 표정/대사
+scripts/mood.sh          # usage % → mood 매핑, mood별 표정
+scripts/bubble.sh        # 컨텍스트 인식 대사 엔진
+resources/bubbles/ko.txt # 한글 대사 데이터
 scripts/sprite-renderer.sh  # .sprite 파일 파싱 + ANSI 렌더링 엔진
 resources/sprites/*.sprite  # 각 펫의 ASCII 아트 데이터 (.sprite 포맷)
 commands/animals.md      # /animals 슬래시 커맨드 정의
