@@ -26,11 +26,12 @@ INPUT=$(cat)
 # === Terminal size — compact if too small ===
 TERM_WIDTH="${COLUMNS:-$(tput cols 2>/dev/null || echo 120)}"
 TERM_HEIGHT="${LINES:-$(tput lines 2>/dev/null || echo 24)}"
-COMPACT_MODE=false
-# Height < 15: not enough vertical space for sprite
-# Width < 50: sprite + info will wrap and cause extra lines
-[ "$TERM_HEIGHT" -lt 15 ] && COMPACT_MODE=true
-[ "$TERM_WIDTH" -lt 50 ] && COMPACT_MODE=true
+RENDER_MODE="full"
+if [ "$TERM_HEIGHT" -lt 8 ] || [ "$TERM_WIDTH" -lt 40 ]; then
+  RENDER_MODE="micro"
+elif [ "$TERM_HEIGHT" -lt 15 ] || [ "$TERM_WIDTH" -lt 50 ]; then
+  RENDER_MODE="compact"
+fi
 
 # === Parse session data ===
 MODEL=$(echo "$INPUT" | jq -r '.model.display_name // "—"' 2>/dev/null)
@@ -48,6 +49,7 @@ branch=$(git branch --show-current 2>/dev/null || echo "")
 
 # Usage (from self-contained JSONL-based cache)
 usage_text=""
+u_color="${GREEN}"
 usage_cache_file="$HOME/.cache/gitanimals/usage-cache.txt"
 if [ -f "$usage_cache_file" ]; then
   u_cache_ts=$(grep "^TIMESTAMP=" "$usage_cache_file" 2>/dev/null | cut -d= -f2)
@@ -234,8 +236,19 @@ info_2="${YELLOW}${MODEL}${R} ${GRAY}│${R} ${ctx_color}Ctx: ${CTX_PCT}%${R}"
 # Line 3: usage
 info_3="$usage_text"
 
+# === Micro mode: 1 line when terminal very small ===
+if [ "$RENDER_MODE" = "micro" ]; then
+  face=$(get_compact_face "$pet_type")
+  u_short=""
+  if [ -n "$usage_text" ] && [ -n "${cache_util:-}" ]; then
+    u_short=" U:${cache_util}%"
+  fi
+  printf '%b\n' "${MAGENTA}${face}${R} ${YELLOW}${MODEL}${R} ${ctx_color}C:${CTX_PCT}%${R}${u_short:+ ${u_color}${u_short}${R}}"
+  exit 0
+fi
+
 # === Compact mode: 2 lines when terminal too short ===
-if [ "$COMPACT_MODE" = true ]; then
+if [ "$RENDER_MODE" = "compact" ]; then
   face=$(get_compact_face "$pet_type")
   printf '%b\n' "${BLUE}${current_dir}${R} ${GRAY}│${R} ${GREEN}⎇ ${branch}${R} ${GRAY}│${R} ${YELLOW}${MODEL}${R} ${GRAY}│${R} ${ctx_color}Ctx: ${CTX_PCT}%${R}"
   printf '%b\n' "${MAGENTA}${face}${R} ${BOLD}${pet_name}${R} Lv.${pet_level} ${YELLOW}${stars}${R} ${GRAY}│${R} ${CYAN}${bubble}${R}"
