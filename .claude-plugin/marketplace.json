@@ -3,8 +3,8 @@
   "name": "gitanimals-buddy",
   "description": "GitAnimals pet companion for Claude Code — show your pets in the terminal statusLine",
   "owner": {
-    "name": "git-goods",
-    "email": "gitanimals@git-goods.org"
+    "name": "sumi-0011",
+    "email": "selina2000@naver.com"
   },
   "plugins": [
     {
@@ -12,7 +12,8 @@
       "description": "GitAnimals pet companion for Claude Code. Display your GitHub-earned pets as ASCII art in the terminal statusLine with speech bubbles and level indicators.",
       "version": "0.2.0",
       "author": {
-        "name": "git-goods"
+        "name": "sumi-0011",
+        "email": "selina2000@naver.com"
       },
       "source": "./",
       "category": "companion",

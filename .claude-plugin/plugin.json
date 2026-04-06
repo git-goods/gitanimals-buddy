@@ -2,7 +2,10 @@
   "name": "gitanimals-buddy",
   "version": "0.2.0",
   "description": "GitAnimals pet companion for Claude Code — show your pets in the terminal",
-  "author": "git-goods",
-  "homepage": "https://gitanimals.org",
-  "repository": "https://github.com/git-goods/gitanimals"
+  "author": {
+    "name": "sumi-0011",
+    "email": "selina2000@naver.com"
+  },
+  "homepage": "https://github.com/git-goods/gitanimals-buddy",
+  "repository": "https://github.com/git-goods/gitanimals-buddy"
 }
