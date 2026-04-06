@@ -1,85 +1,211 @@
 #!/bin/bash
-# Preview script — test statusline rendering with mock data
-# Usage: bash scripts/preview.sh [pet_type] [level]
-#   e.g.: bash scripts/preview.sh goose 5
-#         bash scripts/preview.sh penguin 12
-#         bash scripts/preview.sh all
+# preview.sh — 인터랙티브 .sprite 미리보기
+# Usage: bash scripts/preview.sh
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PET_TYPE="${1:-goose}"
-PET_LEVEL="${2:-5}"
+RESOURCE_DIR="${SCRIPT_DIR}/../resources/sprites"
+RENDERER="${SCRIPT_DIR}/sprite-renderer.sh"
+source "$SCRIPT_DIR/mood.sh"
 
-# Create temp config for preview
-PREVIEW_CONFIG=$(mktemp)
-echo "{\"username\":\"preview\",\"hidden\":false,\"active_pet\":\"\"}" > "$PREVIEW_CONFIG"
+# === Colors ===
+R='\033[0m'
+BOLD='\033[1m'
+DIM='\033[2m'
+CYAN='\033[36m'
+YELLOW='\033[33m'
+GREEN='\033[32m'
+RED='\033[31m'
+MAGENTA='\033[35m'
 
-# Create temp cache
-PREVIEW_CACHE=$(mktemp)
-
-# Mock Claude Code session JSON
-MOCK_SESSION='{
-  "model": {"id": "claude-opus-4-6", "display_name": "Opus 4.6"},
-  "context_window": {"used_percentage": 23, "remaining_percentage": 77, "context_window_size": 200000},
-  "cost": {"total_cost_usd": 0.0542},
-  "workspace": {"current_dir": "/home/user/project"},
-  "version": "2.1.90"
-}'
-
-preview_pet() {
-  local pet="$1"
-  local level="$2"
-
-  # Create mock pet cache
-  cat > "$PREVIEW_CACHE" <<EOF
-{"pets":[{"type":"${pet^^}","name":"${pet^}","level":${level},"visible":true}]}
-EOF
-
-  # Override config/cache paths by setting env vars
-  export HOME_OVERRIDE="/tmp/gitanimals-preview-$$"
-  mkdir -p "$HOME_OVERRIDE/.claude" "$HOME_OVERRIDE/.cache/gitanimals"
-  cp "$PREVIEW_CONFIG" "$HOME_OVERRIDE/.claude/gitanimals.json"
-  cp "$PREVIEW_CACHE" "$HOME_OVERRIDE/.cache/gitanimals/pet-cache.json"
-
-  echo ""
-  echo "━━━ ${pet^^} Lv.${level} ━━━"
-  echo ""
-
-  # Run statusline with mock data (override HOME)
-  HOME="$HOME_OVERRIDE" echo "$MOCK_SESSION" | bash "$SCRIPT_DIR/statusline.sh" 2>/dev/null || {
-    # If main script fails, just render sprite directly
-    source "$SCRIPT_DIR/sprites/${pet}.sh" 2>/dev/null || source "$SCRIPT_DIR/sprites/fallback.sh"
-    "${pet}_frame" 0 2>/dev/null || fallback_frame 0
-    echo "  ${pet^^} Lv.${level}"
-  }
-
-  # Cleanup
-  rm -rf "$HOME_OVERRIDE"
+mood_color() {
+  case "$1" in
+    happy) echo "$GREEN" ;; normal) echo "$CYAN" ;;
+    worried) echo "$YELLOW" ;; panic) echo "$RED" ;;
+  esac
 }
 
-if [ "$PET_TYPE" = "all" ]; then
-  echo "🐾 GitAnimals Buddy — All Phase 1 Pets Preview"
-  echo "================================================"
-  for pet in goose little_chick penguin cat capybara; do
-    preview_pet "$pet" "$PET_LEVEL"
+# === Collect available pets ===
+PETS=()
+for f in "$RESOURCE_DIR"/*.sprite; do
+  PETS+=("$(basename "$f" .sprite)")
+done
+
+MOODS=(happy normal worried panic)
+
+# === Helpers ===
+clear_screen() { printf '\033[2J\033[H'; }
+
+render_sprite_preview() {
+  local pet="$1" mood="$2"
+  local sprite_file="${RESOURCE_DIR}/${pet}.sprite"
+  [ ! -f "$sprite_file" ] && sprite_file="${RESOURCE_DIR}/fallback.sprite"
+  bash "$RENDERER" "$sprite_file" 0 "$mood"
+}
+
+show_pet_menu() {
+  clear_screen
+  printf '%b\n' "${BOLD}🐾 GitAnimals Buddy — Sprite Preview${R}"
+  printf '%b\n' "${DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${R}"
+  echo ""
+  printf '%b\n' "${BOLD}펫을 선택하세요:${R}"
+  echo ""
+
+  local i=1
+  for pet in "${PETS[@]}"; do
+    local face
+    face=$(get_mood_compact_face "$pet" "happy")
+    local display
+    display=$(echo "$pet" | tr '[:lower:]' '[:upper:]')
+    printf '  %b%d%b) %b%-15s%b %s\n' "$CYAN" "$i" "$R" "$BOLD" "$display" "$R" "$face"
+    i=$((i+1))
   done
-  echo ""
-  echo "━━━ FALLBACK (unsupported pet) ━━━"
-  echo ""
-  preview_pet "unknown_pet" "$PET_LEVEL"
-else
-  echo "🐾 GitAnimals Buddy — Preview: ${PET_TYPE^^}"
-  echo "================================================"
-  preview_pet "$PET_TYPE" "$PET_LEVEL"
-fi
 
-# Cleanup
-rm -f "$PREVIEW_CONFIG" "$PREVIEW_CACHE"
+  echo ""
+  printf '  %b0%b) 전체 보기\n' "$YELLOW" "$R"
+  printf '  %bq%b) 종료\n' "$DIM" "$R"
+  echo ""
+  printf '%b' "${BOLD}> ${R}"
+}
 
-echo ""
-echo "================================================"
-echo "To install: Add to ~/.claude/settings.json:"
-echo '  "statusLine": {'
-echo '    "type": "command",'
-echo "    \"command\": \"bash $(cd "$SCRIPT_DIR/.." && pwd)/scripts/statusline.sh\""
-echo '  }'
+show_mood_menu() {
+  local pet="$1"
+  local display
+  display=$(echo "$pet" | tr '[:lower:]' '[:upper:]')
+
+  clear_screen
+  printf '%b\n' "${BOLD}🐾 ${MAGENTA}${display}${R}${BOLD} — mood 선택${R}"
+  printf '%b\n' "${DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${R}"
+  echo ""
+
+  local i=1
+  for mood in "${MOODS[@]}"; do
+    local mc face
+    mc=$(mood_color "$mood")
+    face=$(get_mood_compact_face "$pet" "$mood")
+    printf '  %b%d%b) %b%-10s%b %s\n' "$CYAN" "$i" "$R" "$mc" "$mood" "$R" "$face"
+    i=$((i+1))
+  done
+
+  echo ""
+  printf '  %b0%b) 전체 mood 보기\n' "$YELLOW" "$R"
+  printf '  %bb%b) 뒤로\n' "$DIM" "$R"
+  echo ""
+  printf '%b' "${BOLD}> ${R}"
+}
+
+show_sprite() {
+  local pet="$1" mood="$2"
+  local display mc face
+  display=$(echo "$pet" | tr '[:lower:]' '[:upper:]')
+  mc=$(mood_color "$mood")
+  face=$(get_mood_compact_face "$pet" "$mood")
+
+  echo ""
+  printf '%b\n' "  ${BOLD}${MAGENTA}${display}${R} ${mc}[${mood}]${R} compact: ${MAGENTA}${face}${R}"
+  echo ""
+
+  while IFS= read -r line; do
+    printf '    %s\n' "$line"
+  done < <(render_sprite_preview "$pet" "$mood")
+
+  echo ""
+}
+
+show_all_moods() {
+  local pet="$1"
+  local display
+  display=$(echo "$pet" | tr '[:lower:]' '[:upper:]')
+
+  clear_screen
+  printf '%b\n' "${BOLD}🐾 ${MAGENTA}${display}${R}${BOLD} — 전체 mood${R}"
+  printf '%b\n' "${DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${R}"
+
+  for mood in "${MOODS[@]}"; do
+    show_sprite "$pet" "$mood"
+  done
+
+  printf '%b\n' "${DIM}───────────────────────────────────────${R}"
+}
+
+show_all_pets() {
+  clear_screen
+  printf '%b\n' "${BOLD}🐾 GitAnimals Buddy — 전체 펫 미리보기${R}"
+  printf '%b\n' "${DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${R}"
+
+  for pet in "${PETS[@]}"; do
+    local display
+    display=$(echo "$pet" | tr '[:lower:]' '[:upper:]')
+    printf '\n%b\n' "${BOLD}${MAGENTA}▸ ${display}${R}"
+
+    for mood in "${MOODS[@]}"; do
+      local mc face
+      mc=$(mood_color "$mood")
+      face=$(get_mood_compact_face "$pet" "$mood")
+      printf '  %b%-10s%b %s  ' "$mc" "$mood" "$R" "$face"
+    done
+    echo ""
+
+    # Show normal mood sprite as representative
+    echo ""
+    while IFS= read -r line; do
+      printf '    %s\n' "$line"
+    done < <(render_sprite_preview "$pet" "normal")
+    echo ""
+  done
+
+  printf '%b\n' "${DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${R}"
+}
+
+wait_for_key() {
+  echo ""
+  printf '%b' "${DIM}아무 키나 누르세요...${R}"
+  read -rsn1 </dev/tty
+}
+
+# === Main Loop ===
+while true; do
+  show_pet_menu
+  read -rsn1 choice </dev/tty
+  echo "$choice"
+
+  case "$choice" in
+    q|Q) echo ""; printf '%b\n' "${DIM}Bye! 🐾${R}"; exit 0 ;;
+    0)
+      show_all_pets
+      wait_for_key
+      continue
+      ;;
+    [1-9])
+      idx=$((choice - 1))
+      if [ "$idx" -ge "${#PETS[@]}" ]; then
+        continue
+      fi
+      selected_pet="${PETS[$idx]}"
+
+      # Mood submenu loop
+      while true; do
+        show_mood_menu "$selected_pet"
+        read -rsn1 mchoice </dev/tty
+        echo "$mchoice"
+
+        case "$mchoice" in
+          b|B) break ;;
+          0)
+            show_all_moods "$selected_pet"
+            wait_for_key
+            ;;
+          [1-4])
+            midx=$((mchoice - 1))
+            selected_mood="${MOODS[$midx]}"
+            clear_screen
+            printf '%b\n' "${BOLD}🐾 Sprite Preview${R}"
+            printf '%b\n' "${DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${R}"
+            show_sprite "$selected_pet" "$selected_mood"
+            wait_for_key
+            ;;
+        esac
+      done
+      ;;
+  esac
+done
