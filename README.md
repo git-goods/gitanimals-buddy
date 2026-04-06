@@ -69,6 +69,7 @@ echo '{"username": "YOUR_GITHUB_USERNAME", "hidden": false}' > ~/.claude/gitanim
 | `/animals login <username>` | GitAnimals 유저네임 설정 |
 | `/animals list` | 보유 펫 목록 조회 |
 | `/animals select <pet_type>` | 활성 펫 변경 |
+| `/animals setup <session_key>` | Usage 모니터링용 세션 키 설정 |
 | `/animals hide` | statusLine에서 펫 숨기기 |
 | `/animals show` | 펫 다시 표시 |
 
@@ -110,9 +111,31 @@ Pig `(ꈍ.ꈍ)` · Slime `(~.~)` · Hamster `(•ᴥ•)` · Sloth `(-_-)`
 - **펫 레벨** — ★ 기반 표시 (Lv/3, 최대 5개)
 - **말풍선** — 컨텍스트 사용률에 따른 반응 메시지
 
+## Usage 모니터링
+
+statusLine에 Claude API 사용률(%)과 리셋 시간을 표시합니다.
+
+### 정확한 Usage (추천)
+
+claude.ai 세션 키를 설정하면 실제 API 사용률을 표시합니다:
+
+```
+/animals setup <session_key>
+```
+
+세션 키 얻는 방법:
+1. 브라우저에서 https://claude.ai 접속 (로그인 상태)
+2. DevTools (F12) → Application → Cookies → claude.ai
+3. `sessionKey` 값 복사
+
+### 세션 키 없이 사용
+
+설정 없이도 동작합니다. Claude Code가 생성하는 로컬 JSONL 로그를 파싱하여 추정치를 표시합니다. 다만 플랜별 토큰 한도가 추정치이므로 실제와 다를 수 있습니다.
+
 ## 동작 방식
 
-- **API**: `https://render.gitanimals.org/users/{username}`에서 펫 데이터 조회
+- **펫 API**: `https://render.gitanimals.org/users/{username}`에서 펫 데이터 조회
+- **Usage**: claude.ai API (정확) 또는 로컬 JSONL 파싱 (추정)
 - **캐시**: 300초 TTL, 만료 시 백그라운드 갱신 (statusLine 블로킹 없음)
 - **자동 선택**: 가장 레벨 높은 펫을 자동 표시 (수동 선택 가능)
 - **로딩 상태**: 캐시 없을 때 스피너 애니메이션 표시
