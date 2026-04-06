@@ -263,22 +263,25 @@ gap="   "
 
 # === Render ===
 for i in "${!sprite_lines[@]}"; do
+  line="${sprite_lines[$i]}"
+  # Ensure no empty lines (Claude Code strips them via flatMap)
+  [ -z "$(echo "$line" | tr -d '[:space:]')" ] && line=" ."
   if [ "$i" -eq 0 ]; then
-    printf '%s%s%b\n' "${sprite_lines[$i]}" "$gap" "$info_0"
+    printf '%s%s%b\n' "$line" "$gap" "$info_0"
   elif [ "$i" -eq 1 ]; then
-    printf '%s %b\n' "${sprite_lines[$i]}" "${DIM}💬${R} ${CYAN}${bubble}${R}"
+    printf '%s %b\n' "$line" "${DIM}💬${R} ${CYAN}${bubble}${R}"
   elif [ "$i" -eq 2 ]; then
-    printf '%s%s%b\n' "${sprite_lines[$i]}" "$gap" "$info_2"
+    printf '%s%s%b\n' "$line" "$gap" "$info_2"
   elif [ "$i" -eq 3 ]; then
     if [ -n "$info_3" ]; then
-      printf '%s%s%b\n' "${sprite_lines[$i]}" "$gap" "$info_3"
+      printf '%s%s%b\n' "$line" "$gap" "$info_3"
     else
-      printf '%s\n' "${sprite_lines[$i]}"
+      printf '%s\n' "$line"
     fi
   elif [ "$i" -eq "$(( ${#sprite_lines[@]} - 1 ))" ]; then
     continue
   else
-    printf '%s\n' "${sprite_lines[$i]}"
+    printf '%s\n' "$line"
   fi
 done
 
