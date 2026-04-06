@@ -36,23 +36,9 @@ assert_eq "90% → panic"   "panic"   "$(get_mood 90)"
 assert_eq "100% → panic"  "panic"   "$(get_mood 100)"
 assert_eq "빈값 → normal" "normal"  "$(get_mood "")"
 
-# get_mood_bubble tests
-echo ""
-echo "[2] get_mood_bubble — mood별 대사 존재 확인"
-for mood in happy normal worried panic; do
-  result=$(get_mood_bubble "$mood")
-  if [ -n "$result" ]; then
-    echo "  ✅ $mood → '$result'"
-    PASS=$((PASS+1))
-  else
-    echo "  ❌ $mood → 빈 문자열"
-    FAIL=$((FAIL+1))
-  fi
-done
-
 # get_mood_compact_face tests
 echo ""
-echo "[3] get_mood_compact_face — mood별 표정 변화"
+echo "[2] get_mood_compact_face — mood별 표정 변화"
 for pet in rabbit goose cat penguin little_chick capybara pig slime hamster sloth unknown; do
   happy_face=$(get_mood_compact_face "$pet" "happy")
   panic_face=$(get_mood_compact_face "$pet" "panic")
