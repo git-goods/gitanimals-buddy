@@ -69,6 +69,7 @@ echo '{"username": "YOUR_GITHUB_USERNAME", "hidden": false}' > ~/.claude/gitanim
 | `/animals login <username>` | GitAnimals 유저네임 설정 |
 | `/animals list` | 보유 펫 목록 조회 |
 | `/animals select <pet_type>` | 활성 펫 변경 |
+| `/animals usage` | Usage 모니터링 상태 확인 |
 | `/animals hide` | statusLine에서 펫 숨기기 |
 | `/animals show` | 펫 다시 표시 |
 
@@ -110,9 +111,24 @@ Pig `(ꈍ.ꈍ)` · Slime `(~.~)` · Hamster `(•ᴥ•)` · Sloth `(-_-)`
 - **펫 레벨** — ★ 기반 표시 (Lv/3, 최대 5개)
 - **말풍선** — 컨텍스트 사용률에 따른 반응 메시지
 
+## Usage 모니터링
+
+statusLine에 Claude API 사용률(%)과 리셋 시간을 표시합니다.
+
+### 자동 Usage (추천)
+
+**별도 설정 없이** Claude Code에 로그인만 되어 있으면 자동으로 동작합니다.
+
+Claude Code의 OAuth 자격증명(macOS Keychain)을 읽어 `api.anthropic.com`의 rate limit 헤더에서 정확한 사용률을 가져옵니다. 이 방식은 [Claude-Usage-Tracker](https://github.com/hamed-elfayome/Claude-Usage-Tracker)의 CLI Account Sync 구현을 참고했습니다.
+
+### Fallback
+
+OAuth 토큰을 사용할 수 없는 환경에서는 Claude Code가 생성하는 로컬 JSONL 로그를 파싱하여 추정치를 표시합니다. 다만 플랜별 토큰 한도가 추정치이므로 실제와 다를 수 있습니다.
+
 ## 동작 방식
 
-- **API**: `https://render.gitanimals.org/users/{username}`에서 펫 데이터 조회
+- **펫 API**: `https://render.gitanimals.org/users/{username}`에서 펫 데이터 조회
+- **Usage**: CLI OAuth + rate limit 헤더 (정확) 또는 로컬 JSONL 파싱 (추정)
 - **캐시**: 300초 TTL, 만료 시 백그라운드 갱신 (statusLine 블로킹 없음)
 - **자동 선택**: 가장 레벨 높은 펫을 자동 표시 (수동 선택 가능)
 - **로딩 상태**: 캐시 없을 때 스피너 애니메이션 표시
