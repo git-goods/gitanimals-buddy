@@ -1,0 +1,53 @@
+# === mood 기반 ===
+mood:happy | 코딩 고고!
+mood:happy | 오늘도 화이팅~
+mood:happy | 좋은 흐름이야!
+mood:happy | 신난다!
+mood:happy | 야호~!
+mood:normal | 집중 모드!
+mood:normal | 꾸준히 가자~
+mood:normal | 순조로워!
+mood:normal | 잘 하고 있어!
+mood:normal | 좋은 페이스!
+mood:worried | 슬슬 조심...
+mood:worried | 아끼자...
+mood:worried | 좀 빡빡해...
+mood:worried | 흠...
+mood:worried | 절약 모드!
+mood:panic | 거의 다 썼어!!
+mood:panic | 살려줘!!
+mood:panic | 아악!!
+mood:panic | 큰일이다!
+mood:panic | 비상비상!!
+
+# === 시간대 ===
+time:morning | 좋은 아침~
+time:morning | 오늘도 시작!
+time:morning | 모닝 코딩!
+time:afternoon | 밥은 먹었어?
+time:afternoon | 오후도 힘내!
+time:afternoon | 졸리면 커피!
+time:evening | 저녁이다~
+time:evening | 야근인가?
+time:evening | 오늘 수고했어!
+time:dawn | 새벽이잖아...
+time:dawn | 자야 하지 않아?
+time:dawn | 몸 조심해!
+time:dawn | 밤샘은 건강에 안좋아
+
+# === 코딩 습관 ===
+habit:long_session | 슬슬 쉬어가자!
+habit:long_session | 스트레칭 타임!
+habit:long_session | 눈 좀 쉬어~
+habit:long_session | 2시간 넘었다!
+habit:weekend | 주말에도 코딩?!
+habit:weekend | 열정 대단해!
+habit:weekend | 쉬어도 돼~
+
+# === 이벤트 ===
+event:ctx_half | 컨텍스트 반 썼다!
+event:ctx_half | 절반 지점!
+event:ctx_high | 컨텍스트 거의 다!
+event:ctx_high | 정리가 필요해!
+event:cost_1usd | $1 돌파!
+event:cost_1usd | 오늘 좀 쓴다!
