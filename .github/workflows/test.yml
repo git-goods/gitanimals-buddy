@@ -1,0 +1,30 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Run mood tests
+        run: bash tests/test-mood.sh
+
+      - name: Run bubble tests
+        run: bash tests/test-bubble.sh
+
+      - name: Run sprite renderer tests
+        run: bash tests/test-sprite-renderer.sh
+
+      - name: Performance check
+        run: |
+          timeout 1 bash -c 'echo "{\"model\":{\"display_name\":\"Test\"},\"context_window\":{\"used_percentage\":23},\"cost\":{\"total_cost_usd\":0.05}}" | COLUMNS=120 LINES=24 bash scripts/statusline.sh > /dev/null' || echo "⚠️ Performance warning"
