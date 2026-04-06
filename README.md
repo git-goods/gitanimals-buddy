@@ -203,6 +203,18 @@ gitanimals-buddy/
 - `git` — 브랜치 감지
 - bash 4.0+
 
+## Contributing
+
+기여를 환영합니다! 새 펫 스프라이트, 대사 추가, 버그 수정, 기능 개발 등 모든 영역에 자유롭게 기여할 수 있습니다.
+
+**가장 쉬운 기여:**
+- `resources/sprites/` 에 `.sprite` 파일 추가 (새 펫)
+- `resources/bubbles/ko.txt` 에 대사 추가
+
+자세한 내용은 [CONTRIBUTING.md](CONTRIBUTING.md)를 참고해주세요.
+
+> Contributions welcome! Add new pet sprites, dialogues, bug fixes, or features. See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
 ## GitAnimals
 
 [GitAnimals](https://gitanimals.org)는 GitHub 활동으로 펫을 수집하고 성장시키는 서비스입니다.
@@ -211,6 +223,10 @@ gitanimals-buddy/
 - contribution이 펫 레벨을 올림
 - 50종 이상의 펫 (희귀도별)
 - GitHub README에 SVG로 표시
+
+## License
+
+MIT
 
 ## 라이선스
 
