@@ -5,6 +5,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/mood.sh"
+source "$SCRIPT_DIR/bubble.sh"
 CACHE_DIR="${HOME}/.cache/gitanimals"
 CACHE_FILE="${CACHE_DIR}/pet-cache.json"
 CONFIG_FILE="${HOME}/.claude/gitanimals.json"
@@ -46,6 +47,7 @@ fi
 # === Parse session data ===
 MODEL=$(echo "$INPUT" | jq -r '.model.display_name // "—"' 2>/dev/null)
 CTX_PCT=$(echo "$INPUT" | jq -r '.context_window.used_percentage // 0' 2>/dev/null | cut -d. -f1)
+COST=$(echo "$INPUT" | jq -r '.cost.total_cost_usd // 0' 2>/dev/null)
 
 # Context color
 ctx_color="${CYAN}"
@@ -203,7 +205,7 @@ pet_type=$(echo "$active_pet" | jq -r '.type // "GOOSE"' 2>/dev/null)
 pet_level=$(echo "$active_pet" | jq -r '.level // 1' 2>/dev/null)
 pet_name=$(echo "$active_pet" | jq -r '.name // .type' 2>/dev/null)
 frame=$(( $(date +%s) % 2 ))
-bubble=$(get_mood_bubble "$MOOD")
+bubble=$(get_contextual_bubble "$MOOD" "$CTX_PCT" "$COST")
 stars=$(level_stars "$pet_level")
 
 # === Build status info lines (vertical) ===

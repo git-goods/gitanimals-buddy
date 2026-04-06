@@ -1,6 +1,6 @@
 #!/bin/bash
-# mood.sh — Usage %에 따른 mood 매핑 및 mood별 표정/대사 제공
-# Usage: source this file, then call get_mood, get_mood_bubble, get_mood_compact_face
+# mood.sh — Usage %에 따른 mood 매핑 및 mood별 표정 제공
+# Usage: source this file, then call get_mood, get_mood_compact_face
 
 # usage % → mood 문자열
 get_mood() {
@@ -15,27 +15,6 @@ get_mood() {
   else
     echo "happy"
   fi
-}
-
-# mood별 말풍선 대사 (랜덤 1개)
-get_mood_bubble() {
-  local mood="${1:-normal}"
-  local msgs
-  case "$mood" in
-    happy)
-      msgs=("Let's code!" "Nice work~" "I'm here!" "Go go go!" "Ship it!" "You got this!" "Yay~!")
-      ;;
-    normal)
-      msgs=("Keep going~" "Focus time!" "Steady~" "On track!" "Doing good!")
-      ;;
-    worried)
-      msgs=("Getting tight..." "Save some..." "Be careful~" "Hmm..." "Watch out!")
-      ;;
-    panic)
-      msgs=("Running low!!" "Almost out!" "Help!!" "Ahhh!!" "Save me!")
-      ;;
-  esac
-  echo "${msgs[$(( $(date +%S) % ${#msgs[@]} ))]}"
 }
 
 # mood별 compact face (pet_type, mood)
