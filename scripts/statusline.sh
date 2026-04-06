@@ -162,14 +162,12 @@ get_active_pet() {
 render_sprite() {
   local pet_type="$1" frame="$2" mood="${3:-normal}"
   local pet_lower=$(echo "$pet_type" | tr '[:upper:]' '[:lower:]')
-  local sprite_file="${SCRIPT_DIR}/sprites/${pet_lower}.sh"
-  if [ -f "$sprite_file" ]; then
-    source "$sprite_file"
-    "${pet_lower}_frame" "$frame" "$mood"
-  else
-    source "${SCRIPT_DIR}/sprites/fallback.sh"
-    fallback_frame "$frame" "$mood"
+  local resource_dir="${SCRIPT_DIR}/../resources/sprites"
+  local sprite_file="${resource_dir}/${pet_lower}.sprite"
+  if [ ! -f "$sprite_file" ]; then
+    sprite_file="${resource_dir}/fallback.sprite"
   fi
+  bash "${SCRIPT_DIR}/sprite-renderer.sh" "$sprite_file" "$frame" "$mood"
 }
 
 
