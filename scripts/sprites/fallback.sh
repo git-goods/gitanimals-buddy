@@ -1,22 +1,22 @@
 #!/bin/bash
-# FALLBACK — generic silhouette for unsupported pets
+# FALLBACK — generic silhouette, mood-aware
 
 fallback_frame() {
-  local frame="${1:-0}"
+  local frame="${1:-0}" mood="${2:-normal}"
   local DIM='\033[2m'
   local R='\033[0m'
 
-  if [ "$frame" -eq 0 ]; then
-    printf '%b\n' "${DIM}┌───────┐${R} "
-    printf '%b\n' "${DIM}│  ◦ ◦  │${R} "
-    printf '%b\n' "${DIM}│  ???  │${R} "
-    printf '%b\n' "${DIM}└───────┘${R} "
-    printf '%b\n' "             "
-  else
-    printf '%b\n' "${DIM}┌───────┐${R} "
-    printf '%b\n' "${DIM}│  • •  │${R} "
-    printf '%b\n' "${DIM}│  ???  │${R} "
-    printf '%b\n' "${DIM}└───────┘${R} "
-    printf '%b\n' "             "
-  fi
+  local EYES
+  case "$mood" in
+    happy)   EYES="◦ ◦" ;;
+    normal)  EYES="◦ ◦" ;;
+    worried) EYES="; ;" ;;
+    panic)   EYES="X X" ;;
+  esac
+
+  printf '%b\n' "${DIM}┌───────┐${R} "
+  printf '%b\n' "${DIM}│  ${EYES}  │${R} "
+  printf '%b\n' "${DIM}│  ???  │${R} "
+  printf '%b\n' "${DIM}└───────┘${R} "
+  printf '%b\n' "             "
 }
