@@ -7,16 +7,16 @@ fallback_frame() {
   local R='\033[0m'
 
   if [ "$frame" -eq 0 ]; then
-    printf '%b\n' "  ${DIM}┌───────┐${R} "
-    printf '%b\n' "  ${DIM}│  ◦ ◦  │${R} "
-    printf '%b\n' "  ${DIM}│  ???  │${R} "
-    printf '%b\n' "  ${DIM}└───────┘${R} "
+    printf '%b\n' "${DIM}┌───────┐${R} "
+    printf '%b\n' "${DIM}│  ◦ ◦  │${R} "
+    printf '%b\n' "${DIM}│  ???  │${R} "
+    printf '%b\n' "${DIM}└───────┘${R} "
     printf '%b\n' "             "
   else
-    printf '%b\n' "  ${DIM}┌───────┐${R} "
-    printf '%b\n' "  ${DIM}│  • •  │${R} "
-    printf '%b\n' "  ${DIM}│  ???  │${R} "
-    printf '%b\n' "  ${DIM}└───────┘${R} "
+    printf '%b\n' "${DIM}┌───────┐${R} "
+    printf '%b\n' "${DIM}│  • •  │${R} "
+    printf '%b\n' "${DIM}│  ???  │${R} "
+    printf '%b\n' "${DIM}└───────┘${R} "
     printf '%b\n' "             "
   fi
 }

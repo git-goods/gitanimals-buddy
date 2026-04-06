@@ -24,12 +24,21 @@ R='\033[0m'
 INPUT=$(cat)
 
 # === Terminal size — compact if too small ===
-TERM_WIDTH="${COLUMNS:-$(tput cols 2>/dev/null || echo 120)}"
-TERM_HEIGHT="${LINES:-$(tput lines 2>/dev/null || echo 24)}"
+# stdin이 파이프여도 /dev/tty에서 실제 터미널 크기를 읽음 (리사이즈 즉시 반영)
+_tty_size=$(bash -c 'stty size </dev/tty' 2>/dev/null || echo "0 0")
+_tty_rows=$(echo "$_tty_size" | awk '{print $1}')
+_tty_cols=$(echo "$_tty_size" | awk '{print $2}')
+
+TERM_WIDTH="${COLUMNS:-0}"
+TERM_HEIGHT="${LINES:-0}"
+[ "$TERM_WIDTH" -le 0 ] 2>/dev/null && TERM_WIDTH="${_tty_cols:-0}"
+[ "$TERM_HEIGHT" -le 0 ] 2>/dev/null && TERM_HEIGHT="${_tty_rows:-0}"
+[ "$TERM_WIDTH" -le 0 ] 2>/dev/null && TERM_WIDTH=$(tput cols 2>/dev/null || echo 120)
+[ "$TERM_HEIGHT" -le 0 ] 2>/dev/null && TERM_HEIGHT=$(tput lines 2>/dev/null || echo 24)
 RENDER_MODE="full"
 if [ "$TERM_HEIGHT" -lt 8 ] || [ "$TERM_WIDTH" -lt 40 ]; then
   RENDER_MODE="micro"
-elif [ "$TERM_HEIGHT" -lt 15 ] || [ "$TERM_WIDTH" -lt 50 ]; then
+elif [ "$TERM_HEIGHT" -lt 15 ] || [ "$TERM_WIDTH" -lt 90 ]; then
   RENDER_MODE="compact"
 fi
 
@@ -168,7 +177,7 @@ get_compact_face() {
     penguin)      echo "(^^)"   ;;
     cat)          echo "(·.·)"  ;;
     capybara)     echo "(*_*)"  ;;
-    rabbit)       echo "(°..°)" ;;
+    rabbit)       echo "( 'ㅅ' )" ;;
     pig)          echo "(ꈍ.ꈍ)" ;;
     slime)        echo "(~.~)"  ;;
     hamster)      echo "(•ᴥ•)"  ;;
@@ -250,8 +259,10 @@ fi
 # === Compact mode: 2 lines when terminal too short ===
 if [ "$RENDER_MODE" = "compact" ]; then
   face=$(get_compact_face "$pet_type")
-  printf '%b\n' "${BLUE}${current_dir}${R} ${GRAY}│${R} ${GREEN}⎇ ${branch}${R} ${GRAY}│${R} ${YELLOW}${MODEL}${R} ${GRAY}│${R} ${ctx_color}Ctx: ${CTX_PCT}%${R}"
-  printf '%b\n' "${MAGENTA}${face}${R} ${BOLD}${pet_name}${R} Lv.${pet_level} ${YELLOW}${stars}${R} ${GRAY}│${R} ${CYAN}${bubble}${R}"
+  usage_compact=""
+  [ -n "$usage_text" ] && usage_compact=" ${GRAY}│${R} ${usage_text}"
+  printf '%b\n' "${MAGENTA}${face}${R} ${GREEN}⎇ ${branch}${R}${usage_compact}"
+  printf '%b\n' "${BOLD}${pet_name}${R} Lv.${pet_level} ${YELLOW}${stars}${R} ${GRAY}│${R} ${YELLOW}${MODEL}${R} ${GRAY}│${R} ${ctx_color}Ctx: ${CTX_PCT}%${R} ${GRAY}│${R} ${CYAN}${bubble}${R}"
   exit 0
 fi
 
@@ -285,4 +296,4 @@ for i in "${!sprite_lines[@]}"; do
   fi
 done
 
-printf ' %b\n' "${BOLD}${MAGENTA}${pet_name}${R} Lv.${pet_level} ${YELLOW}${stars}${R}"
+printf '%b\n' "${BOLD}${MAGENTA}${pet_name}${R} Lv.${pet_level} ${YELLOW}${stars}${R}"
