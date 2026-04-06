@@ -78,6 +78,26 @@ echo "  === Compact 모드 (80열) ==="
 echo "$MOCK_SESSION" | COLUMNS=80 bash "$SCRIPT_DIR/statusline.sh" 2>/dev/null || echo "  ❌ 렌더링 실패"
 
 echo ""
+
+# === Mode comparison test ===
+echo ""
+echo "========================================="
+echo "=== Rendering Mode Comparison ==="
+echo "========================================="
+
+MOCK='{"model":{"display_name":"Opus 4.6"},"context_window":{"used_percentage":45},"cost":{"total_cost_usd":0.12}}'
+
+echo ""
+echo "--- Full Mode (24x120) ---"
+echo "$MOCK" | LINES=24 COLUMNS=120 bash scripts/statusline.sh
+echo ""
+echo "--- Compact Mode (10x80) ---"
+echo "$MOCK" | LINES=10 COLUMNS=80 bash scripts/statusline.sh
+echo ""
+echo "--- Micro Mode (6x60) ---"
+echo "$MOCK" | LINES=6 COLUMNS=60 bash scripts/statusline.sh
+echo ""
+
 echo "================================="
 
 if [ "$USE_MOCK" = true ]; then

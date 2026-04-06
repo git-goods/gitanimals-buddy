@@ -10,16 +10,16 @@ capybara_frame() {
   local BS='\\'  # literal backslash for printf %b
 
   if [ "$frame" -eq 0 ]; then
-    printf '%b\n' "   ${BROWN}___${R}       "
-    printf '%b\n' "  ${BROWN}(${DARK}*${BROWN}_${DARK}*${BROWN})${R}     "
-    printf '%b\n' "  ${BROWN}/${PINK}~${BROWN}===${BS}${R}    "
-    printf '%b\n' " ${BROWN}|      |${R}   "
-    printf '%b\n' " ${BROWN}d|    |b${R}   "
+    printf '%b\n' "  ${BROWN}___${R}       "
+    printf '%b\n' " ${BROWN}(${DARK}*${BROWN}_${DARK}*${BROWN})${R}     "
+    printf '%b\n' " ${BROWN}/${PINK}~${BROWN}===${BS}${R}    "
+    printf '%b\n' "${BROWN}|      |${R}   "
+    printf '%b\n' "${BROWN}d|    |b${R}   "
   else
-    printf '%b\n' "   ${BROWN}___${R}       "
-    printf '%b\n' "  ${BROWN}(${DARK}*${BROWN}_${DARK}*${BROWN})~${R}    "
-    printf '%b\n' "  ${BROWN}/${PINK}~${BROWN}===${BS}${R}    "
-    printf '%b\n' " ${BROWN}|      |${R}   "
-    printf '%b\n' " ${BROWN}d|    |b${R}   "
+    printf '%b\n' "  ${BROWN}___${R}       "
+    printf '%b\n' " ${BROWN}(${DARK}*${BROWN}_${DARK}*${BROWN})~${R}    "
+    printf '%b\n' " ${BROWN}/${PINK}~${BROWN}===${BS}${R}    "
+    printf '%b\n' "${BROWN}|      |${R}   "
+    printf '%b\n' "${BROWN}d|    |b${R}   "
   fi
 }

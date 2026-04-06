@@ -10,16 +10,16 @@ penguin_frame() {
   local BS='\\'  # literal backslash for printf %b
 
   if [ "$frame" -eq 0 ]; then
-    printf '%b\n' "    ${BLACK}(^^)${R}     "
-    printf '%b\n' "   ${BLACK}/${WHITE}(  )${BLACK}${BS}${R}   "
-    printf '%b\n' "   ${BLACK}|${WHITE}(  )${BLACK}|${R}   "
-    printf '%b\n' "    ${BLACK}${BS}  /${R}     "
-    printf '%b\n' "    ${YELLOW}/${BS} /${BS}${R}    "
+    printf '%b\n' " ${BLACK}(^^)${R}     "
+    printf '%b\n' "${BLACK}/${WHITE}(  )${BLACK}${BS}${R}   "
+    printf '%b\n' "${BLACK}|${WHITE}(  )${BLACK}|${R}   "
+    printf '%b\n' " ${BLACK}${BS}  /${R}     "
+    printf '%b\n' " ${YELLOW}/${BS} /${BS}${R}    "
   else
-    printf '%b\n' "    ${BLACK}(^^)${R}     "
-    printf '%b\n' "  ${BLACK}~/${WHITE}(  )${BLACK}${BS}${R}   "
-    printf '%b\n' "   ${BLACK}|${WHITE}(  )${BLACK}|~${R}  "
-    printf '%b\n' "    ${BLACK}${BS}  /${R}     "
-    printf '%b\n' "    ${YELLOW}/${BS} /${BS}${R}    "
+    printf '%b\n' " ${BLACK}(^^)${R}     "
+    printf '%b\n' "${BLACK}~/${WHITE}(  )${BLACK}${BS}${R}   "
+    printf '%b\n' "${BLACK}|${WHITE}(  )${BLACK}|~${R}  "
+    printf '%b\n' " ${BLACK}${BS}  /${R}     "
+    printf '%b\n' " ${YELLOW}/${BS} /${BS}${R}    "
   fi
 }

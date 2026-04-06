@@ -9,16 +9,16 @@ rabbit_frame() {
   local BS='\\'
 
   if [ "$frame" -eq 0 ]; then
-    printf '%b\n' "   ${WHITE}(\\/) (\\/)${R} "
-    printf '%b\n' "   ${WHITE}( ${PINK}•${WHITE}.${PINK}•${WHITE} )${R}  "
-    printf '%b\n' "   ${WHITE}/ > ${PINK}<3${R}    "
-    printf '%b\n' "  ${WHITE}(__${BS}_${BS}_)${R}   "
+    printf '%b\n' " ${WHITE}(\\/) (\\/)${R} "
+    printf '%b\n' " ${WHITE}( ${PINK}•${WHITE}.${PINK}•${WHITE} )${R}  "
+    printf '%b\n' " ${WHITE}/ > ${PINK}<3${R}    "
+    printf '%b\n' "${WHITE}(__${BS}_${BS}_)${R}   "
     printf '%b\n' "             "
   else
-    printf '%b\n' "   ${WHITE}(\\/) (\\/)${R} "
-    printf '%b\n' "   ${WHITE}( ${PINK}^${WHITE}.${PINK}^${WHITE} )${R}  "
-    printf '%b\n' "   ${WHITE}/ >  <${BS}${R}   "
-    printf '%b\n' "  ${WHITE}(__${BS}_${BS}_)${R}   "
+    printf '%b\n' " ${WHITE}(\\/) (\\/)${R} "
+    printf '%b\n' " ${WHITE}( ${PINK}^${WHITE}.${PINK}^${WHITE} )${R}  "
+    printf '%b\n' " ${WHITE}/ >  <${BS}${R}   "
+    printf '%b\n' "${WHITE}(__${BS}_${BS}_)${R}   "
     printf '%b\n' "             "
   fi
 }

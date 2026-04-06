@@ -24,13 +24,23 @@ R='\033[0m'
 INPUT=$(cat)
 
 # === Terminal size — compact if too small ===
-TERM_WIDTH="${COLUMNS:-$(tput cols 2>/dev/null || echo 120)}"
-TERM_HEIGHT="${LINES:-$(tput lines 2>/dev/null || echo 24)}"
-COMPACT_MODE=false
-# Height < 15: not enough vertical space for sprite
-# Width < 50: sprite + info will wrap and cause extra lines
-[ "$TERM_HEIGHT" -lt 15 ] && COMPACT_MODE=true
-[ "$TERM_WIDTH" -lt 50 ] && COMPACT_MODE=true
+# stdin이 파이프여도 /dev/tty에서 실제 터미널 크기를 읽음 (리사이즈 즉시 반영)
+_tty_size=$(bash -c 'stty size </dev/tty' 2>/dev/null || echo "0 0")
+_tty_rows=$(echo "$_tty_size" | awk '{print $1}')
+_tty_cols=$(echo "$_tty_size" | awk '{print $2}')
+
+TERM_WIDTH="${COLUMNS:-0}"
+TERM_HEIGHT="${LINES:-0}"
+[ "$TERM_WIDTH" -le 0 ] 2>/dev/null && TERM_WIDTH="${_tty_cols:-0}"
+[ "$TERM_HEIGHT" -le 0 ] 2>/dev/null && TERM_HEIGHT="${_tty_rows:-0}"
+[ "$TERM_WIDTH" -le 0 ] 2>/dev/null && TERM_WIDTH=$(tput cols 2>/dev/null || echo 120)
+[ "$TERM_HEIGHT" -le 0 ] 2>/dev/null && TERM_HEIGHT=$(tput lines 2>/dev/null || echo 24)
+RENDER_MODE="full"
+if [ "$TERM_HEIGHT" -lt 8 ] || [ "$TERM_WIDTH" -lt 40 ]; then
+  RENDER_MODE="micro"
+elif [ "$TERM_HEIGHT" -lt 15 ] || [ "$TERM_WIDTH" -lt 90 ]; then
+  RENDER_MODE="compact"
+fi
 
 # === Parse session data ===
 MODEL=$(echo "$INPUT" | jq -r '.model.display_name // "—"' 2>/dev/null)
@@ -48,6 +58,7 @@ branch=$(git branch --show-current 2>/dev/null || echo "")
 
 # Usage (from self-contained JSONL-based cache)
 usage_text=""
+u_color="${GREEN}"
 usage_cache_file="$HOME/.cache/gitanimals/usage-cache.txt"
 if [ -f "$usage_cache_file" ]; then
   u_cache_ts=$(grep "^TIMESTAMP=" "$usage_cache_file" 2>/dev/null | cut -d= -f2)
@@ -166,7 +177,7 @@ get_compact_face() {
     penguin)      echo "(^^)"   ;;
     cat)          echo "(·.·)"  ;;
     capybara)     echo "(*_*)"  ;;
-    rabbit)       echo "(°..°)" ;;
+    rabbit)       echo "( 'ㅅ' )" ;;
     pig)          echo "(ꈍ.ꈍ)" ;;
     slime)        echo "(~.~)"  ;;
     hamster)      echo "(•ᴥ•)"  ;;
@@ -234,11 +245,24 @@ info_2="${YELLOW}${MODEL}${R} ${GRAY}│${R} ${ctx_color}Ctx: ${CTX_PCT}%${R}"
 # Line 3: usage
 info_3="$usage_text"
 
-# === Compact mode: 2 lines when terminal too short ===
-if [ "$COMPACT_MODE" = true ]; then
+# === Micro mode: 1 line when terminal very small ===
+if [ "$RENDER_MODE" = "micro" ]; then
   face=$(get_compact_face "$pet_type")
-  printf '%b\n' "${BLUE}${current_dir}${R} ${GRAY}│${R} ${GREEN}⎇ ${branch}${R} ${GRAY}│${R} ${YELLOW}${MODEL}${R} ${GRAY}│${R} ${ctx_color}Ctx: ${CTX_PCT}%${R}"
-  printf '%b\n' "${MAGENTA}${face}${R} ${BOLD}${pet_name}${R} Lv.${pet_level} ${YELLOW}${stars}${R} ${GRAY}│${R} ${CYAN}${bubble}${R}"
+  u_short=""
+  if [ -n "$usage_text" ] && [ -n "${cache_util:-}" ]; then
+    u_short=" U:${cache_util}%"
+  fi
+  printf '%b\n' "${MAGENTA}${face}${R} ${YELLOW}${MODEL}${R} ${ctx_color}C:${CTX_PCT}%${R}${u_short:+ ${u_color}${u_short}${R}}"
+  exit 0
+fi
+
+# === Compact mode: 2 lines when terminal too short ===
+if [ "$RENDER_MODE" = "compact" ]; then
+  face=$(get_compact_face "$pet_type")
+  usage_compact=""
+  [ -n "$usage_text" ] && usage_compact=" ${GRAY}│${R} ${usage_text}"
+  printf '%b\n' "${MAGENTA}${face}${R} ${GREEN}⎇ ${branch}${R}${usage_compact}"
+  printf '%b\n' "${BOLD}${pet_name}${R} Lv.${pet_level} ${YELLOW}${stars}${R} ${GRAY}│${R} ${YELLOW}${MODEL}${R} ${GRAY}│${R} ${ctx_color}Ctx: ${CTX_PCT}%${R} ${GRAY}│${R} ${CYAN}${bubble}${R}"
   exit 0
 fi
 
@@ -250,23 +274,26 @@ gap="   "
 
 # === Render ===
 for i in "${!sprite_lines[@]}"; do
+  line="${sprite_lines[$i]}"
+  # Ensure no empty lines (Claude Code strips them via flatMap)
+  [ -z "$(echo "$line" | tr -d '[:space:]')" ] && line=" ."
   if [ "$i" -eq 0 ]; then
-    printf '%s%s%b\n' "${sprite_lines[$i]}" "$gap" "$info_0"
+    printf '%s%s%b\n' "$line" "$gap" "$info_0"
   elif [ "$i" -eq 1 ]; then
-    printf '%s %b\n' "${sprite_lines[$i]}" "${DIM}💬${R} ${CYAN}${bubble}${R}"
+    printf '%s %b\n' "$line" "${DIM}💬${R} ${CYAN}${bubble}${R}"
   elif [ "$i" -eq 2 ]; then
-    printf '%s%s%b\n' "${sprite_lines[$i]}" "$gap" "$info_2"
+    printf '%s%s%b\n' "$line" "$gap" "$info_2"
   elif [ "$i" -eq 3 ]; then
     if [ -n "$info_3" ]; then
-      printf '%s%s%b\n' "${sprite_lines[$i]}" "$gap" "$info_3"
+      printf '%s%s%b\n' "$line" "$gap" "$info_3"
     else
-      printf '%s\n' "${sprite_lines[$i]}"
+      printf '%s\n' "$line"
     fi
   elif [ "$i" -eq "$(( ${#sprite_lines[@]} - 1 ))" ]; then
     continue
   else
-    printf '%s\n' "${sprite_lines[$i]}"
+    printf '%s\n' "$line"
   fi
 done
 
-printf ' %b\n' "${BOLD}${MAGENTA}${pet_name}${R} Lv.${pet_level} ${YELLOW}${stars}${R}"
+printf '%b\n' "${BOLD}${MAGENTA}${pet_name}${R} Lv.${pet_level} ${YELLOW}${stars}${R}"

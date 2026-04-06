@@ -11,15 +11,15 @@ goose_frame() {
 
   if [ "$frame" -eq 0 ]; then
     printf '%b\n' "             "
-    printf '%b\n' "    ${WHITE}(${ORANGE}o${WHITE}>)${R}     "
-    printf '%b\n' "    ${WHITE}(__)${R}      "
-    printf '%b\n' " ${WHITE}/)/) ${WHITE}||${R}     "
-    printf '%b\n' " ${YELLOW}^^${R}  ${YELLOW}^^${R}      "
+    printf '%b\n' "   ${WHITE}(${ORANGE}o${WHITE}>)${R}     "
+    printf '%b\n' "   ${WHITE}(__)${R}      "
+    printf '%b\n' "${WHITE}/)/) ${WHITE}||${R}     "
+    printf '%b\n' "${YELLOW}^^${R}  ${YELLOW}^^${R}      "
   else
     printf '%b\n' "             "
-    printf '%b\n' "    ${WHITE}(${ORANGE}o${WHITE}>)${R}     "
-    printf '%b\n' "   ${WHITE}~(__)${R}     "
-    printf '%b\n' " ${WHITE}/)/) ${WHITE}||${R}     "
-    printf '%b\n' "  ${YELLOW}^^${R}${YELLOW}^^${R}       "
+    printf '%b\n' "   ${WHITE}(${ORANGE}o${WHITE}>)${R}     "
+    printf '%b\n' "  ${WHITE}~(__)${R}     "
+    printf '%b\n' "${WHITE}/)/) ${WHITE}||${R}     "
+    printf '%b\n' " ${YELLOW}^^${R}${YELLOW}^^${R}       "
   fi
 }

@@ -9,15 +9,15 @@ little_chick_frame() {
 
   if [ "$frame" -eq 0 ]; then
     printf '%b\n' "             "
-    printf '%b\n' "    ${YELLOW}(°v°)${R}    "
-    printf '%b\n' "    ${YELLOW}/)_)${R}     "
-    printf '%b\n' "    ${ORANGE}_| |_${R}    "
+    printf '%b\n' "${YELLOW}(°v°)${R}    "
+    printf '%b\n' "${YELLOW}/)_)${R}     "
+    printf '%b\n' "${ORANGE}_| |_${R}    "
     printf '%b\n' "             "
   else
     printf '%b\n' "             "
-    printf '%b\n' "    ${YELLOW}(°v°)${R}    "
-    printf '%b\n' "   ${YELLOW}~/)_)${R}     "
-    printf '%b\n' "    ${ORANGE}_| |_${R}    "
+    printf '%b\n' "${YELLOW}(°v°)${R}    "
+    printf '%b\n' "${YELLOW}~/)_)${R}    "
+    printf '%b\n' "${ORANGE}_| |_${R}    "
     printf '%b\n' "             "
   fi
 }
