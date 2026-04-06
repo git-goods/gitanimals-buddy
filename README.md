@@ -51,7 +51,7 @@ git clone https://github.com/git-goods/gitanimals-buddy.git ~/.claude/plugins/gi
 
 # 2. 권한 부여
 chmod +x ~/.claude/plugins/gitanimals-buddy/scripts/*.sh
-chmod +x ~/.claude/plugins/gitanimals-buddy/scripts/sprites/*.sh
+chmod +x ~/.claude/plugins/gitanimals-buddy/scripts/sprite-renderer.sh
 
 # 3. ~/.claude/settings.json에 statusLine 추가
 {
@@ -103,7 +103,7 @@ Pig `(ꈍ.ꈍ)` · Slime `(~.~)` · Hamster `(•ᴥ•)` · Sloth `(-_-)`
 
 | 조건 | 모드 | 줄 수 |
 |------|------|-------|
-| 높이 ≥ 15 & 너비 ≥ 50 | **Full** — ASCII 스프라이트 + 말풍선 + status | 5줄 |
+| 높이 ≥ 15 & 너비 ≥ 90 | **Full** — ASCII 스프라이트 + 말풍선 + status | 5줄 |
 | 높이 ≥ 8 & 너비 ≥ 40 | **Compact** — 표정 이모지 + 한줄 info | 2줄 |
 | 높이 < 8 or 너비 < 40 | **Micro** — 펫 표정 + 핵심 정보 | 1줄 |
 
@@ -116,6 +116,17 @@ Pig `(ꈍ.ꈍ)` · Slime `(~.~)` · Hamster `(•ᴥ•)` · Sloth `(-_-)`
 - **Usage** — API 사용률 + 프로그레스 바 (캐시 기반)
 - **펫 레벨** — ★ 기반 표시 (Lv/3, 최대 5개)
 - **말풍선** — 컨텍스트 사용률에 따른 반응 메시지
+
+### Mood 시스템
+
+API Usage %에 따라 펫의 표정과 대사가 변합니다:
+
+| Usage | Mood | 표정 | 대사 |
+|-------|------|------|------|
+| 0–39% | Happy | ★눈, 밝은 표정 | "Let's code!" "Yay~!" |
+| 40–69% | Normal | 기본 표정 | "Keep going~" "Steady~" |
+| 70–89% | Worried | ;눈, 불안한 표정 | "Getting tight..." "Watch out!" |
+| 90–100% | Panic | X눈, 급박한 표정 | "Running low!!" "Help!!" |
 
 ## Usage 모니터링
 
@@ -156,14 +167,17 @@ gitanimals-buddy/
 │   ├── fetch-pet.sh         # API fetcher (백그라운드)
 │   ├── preview.sh           # 로컬 프리뷰
 │   ├── quick-test.sh        # 테스트 도구
-│   └── sprites/             # ASCII 스프라이트
-│       ├── goose.sh
-│       ├── little_chick.sh
-│       ├── penguin.sh
-│       ├── cat.sh
-│       ├── capybara.sh
-│       ├── rabbit.sh
-│       └── fallback.sh
+│   ├── mood.sh              # usage% → mood 매핑 + 표정/대사
+│   └── sprite-renderer.sh  # .sprite 파싱 + ANSI 렌더링 엔진
+├── resources/
+│   └── sprites/             # ASCII 아트 데이터 (.sprite 포맷)
+│       ├── rabbit.sprite
+│       ├── goose.sprite
+│       ├── cat.sprite
+│       ├── penguin.sprite
+│       ├── little_chick.sprite
+│       ├── capybara.sprite
+│       └── fallback.sprite
 ├── install.sh               # 원스텝 설치
 ├── PUBLISHING.md            # 마켓플레이스 등록 가이드
 └── README.md

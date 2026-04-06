@@ -98,6 +98,32 @@ echo "--- Micro Mode (6x60) ---"
 echo "$MOCK" | LINES=6 COLUMNS=60 bash scripts/statusline.sh
 echo ""
 
+echo ""
+echo "========================================="
+echo "=== Mood Comparison (Compact) ==="
+echo "========================================="
+
+for util in 20 50 75 95; do
+  # 임시 usage cache 생성
+  mkdir -p "$HOME/.cache/gitanimals"
+  cat > "$HOME/.cache/gitanimals/usage-cache.txt" <<UCACHE
+TIMESTAMP=$(date +%s)
+UTILIZATION=${util}
+RESETS_AT=
+UCACHE
+
+  mood_label="happy"
+  [ "$util" -ge 40 ] && mood_label="normal"
+  [ "$util" -ge 70 ] && mood_label="worried"
+  [ "$util" -ge 90 ] && mood_label="panic"
+
+  echo ""
+  echo "--- Usage ${util}% (${mood_label}) ---"
+  echo "$MOCK" | LINES=10 COLUMNS=80 bash scripts/statusline.sh
+done
+
+echo ""
+
 echo "================================="
 
 if [ "$USE_MOCK" = true ]; then

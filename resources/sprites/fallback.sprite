@@ -1,0 +1,21 @@
+body_color=2
+eye_color=2
+
+eyes_happy=◦ ◦
+eyes_normal=◦ ◦
+eyes_worried=; ;
+eyes_panic=X X
+
+[frame:0]
+┌───────┐
+│ {L} {R} │
+│  ???  │
+└───────┘
+ .
+
+[frame:1]
+┌───────┐
+│ {L} {R} │
+│  ???  │
+└───────┘
+ .
