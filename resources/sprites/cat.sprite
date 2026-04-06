@@ -1,0 +1,23 @@
+body_color=37
+eye_color=32
+panic_eye_color=31
+c1=35
+
+eyes_happy=^
+eyes_normal=o
+eyes_worried=;
+eyes_panic=> <
+
+[frame:0]
+ /\\_/\\
+( {L}.{R} )
+ > ^ <
+/|   |\\
+(_{1}~{/}_{1}~{/}_)
+
+[frame:1]
+ /\\_/\\
+( {L}.{R} )
+ > ^ <
+/|   |\\
+(_{1}~{/}_{1}~{/}_)

@@ -1,0 +1,22 @@
+body_color=38;5;130
+eye_color=38;5;94
+c1=38;5;217
+
+eyes_happy=*
+eyes_normal=*
+eyes_worried=;
+eyes_panic=X
+
+[frame:0]
+  ___
+ ({L}_{R})
+ /{1}~{/}===\\
+|      |
+d|    |b
+
+[frame:1]
+  ___
+ ({L}_{R})~
+ /{1}~{/}===\\
+|      |
+d|    |b

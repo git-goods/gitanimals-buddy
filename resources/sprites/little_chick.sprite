@@ -1,0 +1,22 @@
+body_color=93
+eye_color=93
+c1=38;5;208
+
+eyes_happy=°v°
+eyes_normal=°v°
+eyes_worried=°~°
+eyes_panic=°Д°
+
+[frame:0]
+ .
+({L})
+/)_)
+{1}_| |_{/}
+ .
+
+[frame:1]
+ .
+({L})
+~/)_)
+{1}_| |_{/}
+ .
