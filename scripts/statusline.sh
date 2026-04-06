@@ -4,6 +4,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/mood.sh"
 CACHE_DIR="${HOME}/.cache/gitanimals"
 CACHE_FILE="${CACHE_DIR}/pet-cache.json"
 CONFIG_FILE="${HOME}/.claude/gitanimals.json"
@@ -103,6 +104,9 @@ if [ -f "$usage_cache_file" ]; then
   fi
 fi
 
+# === Mood from usage ===
+MOOD=$(get_mood "${cache_util:-}")
+
 # === Helpers ===
 
 get_config_value() {
@@ -156,47 +160,18 @@ get_active_pet() {
 }
 
 render_sprite() {
-  local pet_type="$1" frame="$2"
+  local pet_type="$1" frame="$2" mood="${3:-normal}"
   local pet_lower=$(echo "$pet_type" | tr '[:upper:]' '[:lower:]')
   local sprite_file="${SCRIPT_DIR}/sprites/${pet_lower}.sh"
   if [ -f "$sprite_file" ]; then
     source "$sprite_file"
-    "${pet_lower}_frame" "$frame"
+    "${pet_lower}_frame" "$frame" "$mood"
   else
     source "${SCRIPT_DIR}/sprites/fallback.sh"
-    fallback_frame "$frame"
+    fallback_frame "$frame" "$mood"
   fi
 }
 
-# Compact face per pet type
-get_compact_face() {
-  local pet_type="$1"
-  case "$(echo "$pet_type" | tr '[:upper:]' '[:lower:]')" in
-    goose)        echo "(o>)"   ;;
-    little_chick) echo "(°v°)"  ;;
-    penguin)      echo "(^^)"   ;;
-    cat)          echo "(·.·)"  ;;
-    capybara)     echo "(*_*)"  ;;
-    rabbit)       echo "( 'ㅅ' )" ;;
-    pig)          echo "(ꈍ.ꈍ)" ;;
-    slime)        echo "(~.~)"  ;;
-    hamster)      echo "(•ᴥ•)"  ;;
-    sloth)        echo "(-_-)"  ;;
-    *)            echo "(◦◦)"   ;;
-  esac
-}
-
-get_bubble_text() {
-  local ctx_pct="${1:-0}"
-  if [ "$ctx_pct" -ge 90 ]; then
-    local msgs=("Running low..." "Almost full!" "Save context!")
-  elif [ "$ctx_pct" -ge 70 ]; then
-    local msgs=("Getting busy!" "Keep going~" "Focus time!")
-  else
-    local msgs=("Let's code!" "Nice work~" "I'm here!" "Go go go!" "Ship it!" "You got this!")
-  fi
-  echo "${msgs[$(( $(date +%S) % ${#msgs[@]} ))]}"
-}
 
 level_stars() {
   local level="${1:-1}" stars="" filled=$(( ${1:-1} / 3 ))
@@ -230,7 +205,7 @@ pet_type=$(echo "$active_pet" | jq -r '.type // "GOOSE"' 2>/dev/null)
 pet_level=$(echo "$active_pet" | jq -r '.level // 1' 2>/dev/null)
 pet_name=$(echo "$active_pet" | jq -r '.name // .type' 2>/dev/null)
 frame=$(( $(date +%s) % 2 ))
-bubble=$(get_bubble_text "$CTX_PCT")
+bubble=$(get_mood_bubble "$MOOD")
 stars=$(level_stars "$pet_level")
 
 # === Build status info lines (vertical) ===
@@ -247,7 +222,7 @@ info_3="$usage_text"
 
 # === Micro mode: 1 line when terminal very small ===
 if [ "$RENDER_MODE" = "micro" ]; then
-  face=$(get_compact_face "$pet_type")
+  face=$(get_mood_compact_face "$pet_type" "$MOOD")
   u_short=""
   if [ -n "$usage_text" ] && [ -n "${cache_util:-}" ]; then
     u_short=" U:${cache_util}%"
@@ -258,7 +233,7 @@ fi
 
 # === Compact mode: 2 lines when terminal too short ===
 if [ "$RENDER_MODE" = "compact" ]; then
-  face=$(get_compact_face "$pet_type")
+  face=$(get_mood_compact_face "$pet_type" "$MOOD")
   usage_compact=""
   [ -n "$usage_text" ] && usage_compact=" ${GRAY}│${R} ${usage_text}"
   printf '%b\n' "${MAGENTA}${face}${R} ${GREEN}⎇ ${branch}${R}${usage_compact}"
@@ -268,7 +243,7 @@ fi
 
 # === Sprite ===
 sprite_lines=()
-while IFS= read -r line; do sprite_lines+=("$line"); done < <(render_sprite "$pet_type" "$frame")
+while IFS= read -r line; do sprite_lines+=("$line"); done < <(render_sprite "$pet_type" "$frame" "$MOOD")
 
 gap="   "
 
