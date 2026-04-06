@@ -181,15 +181,45 @@ statusline.sh가 stdin으로 받는 JSON:
 - 서드파티 마켓플레이스: 자동 업데이트 기본 비활성화
 - **버전 번호를 올려야** 업데이트가 감지됨
 
-## 로컬 테스트
+## 로컬 개발 vs 마켓 플러그인 전환
+
+### 로컬 개발 모드
+
+코드를 수정하면서 바로 테스트할 때 사용. 마켓에서 설치된 버전 대신 **로컬 코드가 우선** 적용됨.
 
 ```bash
-# 플러그인 디렉토리 지정하여 Claude Code 실행
-claude --plugin-dir ./
+# 로컬 플러그인 디렉토리를 지정하여 Claude Code 실행
+claude --plugin-dir /path/to/gitanimals-buddy
 
-# 플러그인 변경 후 리로드
+# 코드 수정 후 리로드 (재시작 없이 반영)
 /reload-plugins
 ```
+
+### 마켓 플러그인 업데이트 테스트
+
+main에 push한 뒤, 마켓에서 설치된 플러그인을 최신으로 업데이트.
+
+```bash
+# 1. 마켓플레이스 메타데이터 갱신
+/plugin marketplace update gitanimals-buddy
+
+# 2. 플러그인 업데이트 (새 버전이 있을 때)
+/plugin update gitanimals-buddy@gitanimals-buddy
+
+# 3. 리로드
+/reload-plugins
+```
+
+### 전환 방법
+
+| 상황 | 방법 |
+|------|------|
+| 로컬 코드 테스트 | `claude --plugin-dir ./` 로 실행 |
+| 마켓 버전 테스트 | 일반 `claude` 로 실행 (캐시된 마켓 버전 사용) |
+| 마켓 → 로컬 전환 | `/plugin disable gitanimals-buddy@gitanimals-buddy` 후 `--plugin-dir` 사용 |
+| 로컬 → 마켓 복귀 | `--plugin-dir` 없이 실행 + `/plugin enable gitanimals-buddy@gitanimals-buddy` |
+
+> **주의**: `--plugin-dir`로 실행하면 같은 이름의 마켓 플러그인보다 로컬이 우선됨. 마켓 버전을 테스트하려면 `--plugin-dir` 없이 실행해야 함.
 
 ## 공식 마켓플레이스 제출
 
@@ -212,7 +242,7 @@ claude --plugin-dir ./
 
 - [x] `.claude-plugin/plugin.json` 존재
 - [x] `.claude-plugin/marketplace.json` 존재
-- [ ] hooks/hooks.json에서 `${CLAUDE_PLUGIN_ROOT}` 경로 사용
-- [ ] statusLine command에서 `${CLAUDE_PLUGIN_ROOT}` 경로 사용
-- [ ] install.sh에서 캐시 경로 대응
-- [ ] 공식 마켓플레이스 제출 또는 GitHub 마켓플레이스 배포
+- [x] hooks/hooks.json에서 `${CLAUDE_PLUGIN_ROOT}` 경로 사용
+- [x] install.sh에서 스크립트 위치 기반 경로 대응
+- [x] 개별 skill 커맨드 분리 (`/gitanimals-buddy:<name>`)
+- [ ] 공식 마켓플레이스 제출
