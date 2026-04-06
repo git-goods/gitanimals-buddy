@@ -53,7 +53,7 @@ done
 # get_mood_compact_face tests
 echo ""
 echo "[3] get_mood_compact_face — mood별 표정 변화"
-for pet in rabbit goose cat penguin little_chick capybara; do
+for pet in rabbit goose cat penguin little_chick capybara pig slime hamster sloth unknown; do
   happy_face=$(get_mood_compact_face "$pet" "happy")
   panic_face=$(get_mood_compact_face "$pet" "panic")
   if [ "$happy_face" != "$panic_face" ]; then
