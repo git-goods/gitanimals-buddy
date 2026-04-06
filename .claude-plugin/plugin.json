@@ -7,5 +7,7 @@
     "email": "selina2000@naver.com"
   },
   "homepage": "https://github.com/git-goods/gitanimals-buddy",
-  "repository": "https://github.com/git-goods/gitanimals-buddy"
+  "repository": "https://github.com/git-goods/gitanimals-buddy",
+  "license": "MIT",
+  "keywords": ["pet", "companion", "statusline", "ascii-art", "gitanimals", "gamification"]
 }

@@ -2,7 +2,7 @@
 # GitAnimals Buddy — One-step installer for Claude Code
 set -euo pipefail
 
-PLUGIN_DIR="$HOME/.claude/plugins/gitanimals-buddy"
+PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_FILE="$HOME/.claude/gitanimals.json"
 SETTINGS_FILE="$HOME/.claude/settings.json"
 STATUSLINE_CMD="bash $PLUGIN_DIR/scripts/statusline.sh"
