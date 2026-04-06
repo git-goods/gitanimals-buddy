@@ -9,6 +9,9 @@ CONFIG_FILE="${HOME}/.claude/gitanimals.json"
 
 mkdir -p "$CACHE_DIR"
 
+# 세션 시작 시간 기록 (bubble.sh의 장시간 코딩 감지에 사용)
+echo "$(date +%s)" > "${CACHE_DIR}/session-start.txt"
+
 # Get username from config or git
 get_username() {
   if [ -f "$CONFIG_FILE" ]; then
