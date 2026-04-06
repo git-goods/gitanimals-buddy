@@ -117,6 +117,17 @@ Pig `(ꈍ.ꈍ)` · Slime `(~.~)` · Hamster `(•ᴥ•)` · Sloth `(-_-)`
 - **펫 레벨** — ★ 기반 표시 (Lv/3, 최대 5개)
 - **말풍선** — 컨텍스트 사용률에 따른 반응 메시지
 
+### Mood 시스템
+
+API Usage %에 따라 펫의 표정과 대사가 변합니다:
+
+| Usage | Mood | 표정 | 대사 |
+|-------|------|------|------|
+| 0–39% | Happy | ★눈, 밝은 표정 | "Let's code!" "Yay~!" |
+| 40–69% | Normal | 기본 표정 | "Keep going~" "Steady~" |
+| 70–89% | Worried | ;눈, 불안한 표정 | "Getting tight..." "Watch out!" |
+| 90–100% | Panic | X눈, 급박한 표정 | "Running low!!" "Help!!" |
+
 ## Usage 모니터링
 
 statusLine에 Claude API 사용률(%)과 리셋 시간을 표시합니다.
