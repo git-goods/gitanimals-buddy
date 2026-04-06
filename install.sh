@@ -25,7 +25,6 @@ echo "  OK"
 # Step 2: Set permissions
 echo "[2/4] Setting script permissions..."
 chmod +x "$PLUGIN_DIR/scripts/"*.sh
-chmod +x "$PLUGIN_DIR/scripts/sprites/"*.sh
 echo "  OK"
 
 # Step 3: Configure username

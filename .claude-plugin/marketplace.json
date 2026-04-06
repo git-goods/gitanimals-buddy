@@ -10,7 +10,7 @@
     {
       "name": "gitanimals-buddy",
       "description": "GitAnimals pet companion for Claude Code. Display your GitHub-earned pets as ASCII art in the terminal statusLine with speech bubbles and level indicators.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "author": {
         "name": "git-goods"
       },
@@ -27,5 +27,5 @@
       ]
     }
   ],
-  "version": "0.1.0"
+  "version": "0.2.0"
 }
