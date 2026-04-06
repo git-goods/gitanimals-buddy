@@ -9,7 +9,7 @@ GitAnimals 펫 companion 관리 커맨드
 - `/animals list` — 보유 펫 목록 조회
 - `/animals select <pet_type>` — 활성 펫 변경
 - `/animals card` — 현재 펫 상세 정보
-- `/animals setup <session_key>` — Usage 모니터링용 claude.ai 세션 키 설정
+- `/animals usage` — Usage 모니터링 상태 확인
 - `/animals hide` — statusLine에서 펫 숨기기
 - `/animals show` — 펫 다시 표시
 
@@ -75,58 +75,38 @@ jq --arg p "$PET_TYPE" '.active_pet = $p' "$CONFIG" > /tmp/ga-tmp.json && mv /tm
 echo "✅ Active pet set to: $PET_TYPE"
 ```
 
-### /animals setup <session_key>
-Set up claude.ai session key for accurate Usage monitoring. Without this, Usage falls back to local JSONL parsing (less accurate).
+### /animals usage
+Show current Usage monitoring status. Usage is automatically fetched from Claude Code's OAuth credentials (no manual setup needed).
 
 ```bash
-SESSION_KEY="$1"
 CONFIG="$HOME/.claude/gitanimals.json"
-mkdir -p "$HOME/.claude"
+CACHE="$HOME/.cache/gitanimals/usage-cache.txt"
 
-if [ -z "$SESSION_KEY" ]; then
-  echo "📊 Usage 모니터링 설정"
-  echo ""
-  echo "   정확한 Usage %를 표시하려면 claude.ai 세션 키가 필요합니다."
-  echo ""
-  echo "   세션 키 얻는 방법:"
-  echo "   1. 브라우저에서 https://claude.ai 접속 (로그인 상태)"
-  echo "   2. DevTools (F12) → Application → Cookies → claude.ai"
-  echo "   3. sessionKey 값 복사"
-  echo ""
-  echo "   사용법: /animals setup <session_key>"
-  echo ""
-  echo "   ⚠️  세션 키 없이도 동작합니다 (로컬 JSONL 기반 추정치 사용)"
-  exit 0
-fi
+echo "📊 Usage 모니터링"
+echo ""
 
-# Save session key
-if [ -f "$CONFIG" ]; then
-  jq --arg k "$SESSION_KEY" '.claude_session_key = $k' "$CONFIG" > /tmp/ga-tmp.json && mv /tmp/ga-tmp.json "$CONFIG"
+# Check if cached data exists
+if [ -f "$CACHE" ]; then
+  UTIL=$(grep "^UTILIZATION=" "$CACHE" | cut -d= -f2)
+  SOURCE=$(grep "^SOURCE=" "$CACHE" | cut -d= -f2)
+  RESETS=$(grep "^RESETS_AT=" "$CACHE" | cut -d= -f2)
+  TS=$(grep "^TIMESTAMP=" "$CACHE" | cut -d= -f2)
+  AGE=$(( $(date +%s) - TS ))
+
+  echo "   Usage: ${UTIL}%"
+  echo "   Source: ${SOURCE}"
+  [ -n "$RESETS" ] && echo "   Resets at: ${RESETS}"
+  echo "   Cache age: ${AGE}s"
 else
-  echo "{\"claude_session_key\": \"$SESSION_KEY\", \"hidden\": false}" > "$CONFIG"
+  echo "   캐시 없음. fetch-usage.sh가 실행되면 자동으로 데이터를 가져옵니다."
 fi
 
-# Auto-detect org ID
-ORG_ID=$(curl -s --max-time 5 \
-  "https://claude.ai/api/organizations" \
-  -H "Cookie: sessionKey=${SESSION_KEY}" \
-  -H "Accept: application/json" 2>/dev/null \
-  | jq -r '.[0].uuid // empty' 2>/dev/null)
-
-if [ -n "$ORG_ID" ]; then
-  jq --arg id "$ORG_ID" '.claude_org_id = $id' "$CONFIG" > /tmp/ga-tmp.json && mv /tmp/ga-tmp.json "$CONFIG"
-  echo "✅ Usage 모니터링 설정 완료"
-  echo "   Organization: $ORG_ID"
-  # Verify by fetching usage
-  bash "$(dirname "$0")/../scripts/fetch-usage.sh" 2>/dev/null
-  if [ -f "$HOME/.cache/gitanimals/usage-cache.txt" ]; then
-    UTIL=$(grep "^UTILIZATION=" "$HOME/.cache/gitanimals/usage-cache.txt" | cut -d= -f2)
-    echo "   Current usage: ${UTIL}%"
-  fi
-else
-  echo "❌ 세션 키가 유효하지 않거나 만료되었습니다."
-  echo "   브라우저에서 claude.ai에 로그인 후 세션 키를 다시 확인해주세요."
-fi
+echo ""
+echo "   데이터 소스 우선순위:"
+echo "   1. oauth — Claude Code 로그인 자격증명 자동 사용 (추천)"
+echo "   2. jsonl — 로컬 JSONL 로그 파싱 (추정치)"
+echo ""
+echo "   ℹ️  Claude Code에 로그인되어 있으면 자동으로 동작합니다."
 ```
 
 ### /animals hide / show
