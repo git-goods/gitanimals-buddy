@@ -13,7 +13,7 @@ echo "  =========================="
 echo ""
 
 # Step 1: Check dependencies
-echo "[1/4] Checking dependencies..."
+echo "[1/5] Checking dependencies..."
 for cmd in jq curl git; do
   if ! command -v "$cmd" &>/dev/null; then
     echo "  ERROR: '$cmd' is required but not installed."
@@ -23,12 +23,12 @@ done
 echo "  OK"
 
 # Step 2: Set permissions
-echo "[2/4] Setting script permissions..."
+echo "[2/5] Setting script permissions..."
 chmod +x "$PLUGIN_DIR/scripts/"*.sh
 echo "  OK"
 
 # Step 3: Configure username
-echo "[3/4] Configuring GitAnimals account..."
+echo "[3/5] Configuring GitAnimals account..."
 if [ -f "$CONFIG_FILE" ]; then
   existing=$(jq -r '.username // ""' "$CONFIG_FILE" 2>/dev/null)
   if [ -n "$existing" ]; then
@@ -49,7 +49,7 @@ else
 fi
 
 # Step 4: Update settings.json
-echo "[4/4] Updating Claude Code settings..."
+echo "[4/5] Updating Claude Code settings..."
 if [ -f "$SETTINGS_FILE" ]; then
   # Check if statusLine already points to our script
   current=$(jq -r '.statusLine.command // ""' "$SETTINGS_FILE" 2>/dev/null)
@@ -78,6 +78,17 @@ else
 EOF
   echo "  Created settings.json"
 fi
+
+# Step 5: Register slash commands
+echo "[5/5] Registering slash commands..."
+mkdir -p "$HOME/.claude/commands"
+for cmd_file in "$PLUGIN_DIR/commands/"*.md; do
+  fname=$(basename "$cmd_file")
+  target="$HOME/.claude/commands/$fname"
+  rm -f "$target"
+  ln -s "$cmd_file" "$target"
+done
+echo "  OK"
 
 # Prefetch pet data
 echo ""
