@@ -71,7 +71,8 @@ echo '{"username": "YOUR_GITHUB_USERNAME", "hidden": false}' > ~/.claude/gitanim
 | 커맨드 | 설명 |
 |--------|------|
 | `/animals` | 현재 활성 펫 표시 |
-| `/animals login <username>` | GitAnimals 유저네임 설정 |
+| `/animals login` | GitAnimals 웹에서 로그인 후 username 확인 |
+| `/animals login <username>` | GitAnimals 유저네임 검증 후 설정 |
 | `/animals list` | 보유 펫 목록 조회 |
 | `/animals select <pet_type>` | 활성 펫 변경 |
 | `/animals usage` | Usage 모니터링 상태 확인 |

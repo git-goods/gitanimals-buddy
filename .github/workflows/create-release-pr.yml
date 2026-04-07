@@ -1,0 +1,94 @@
+name: Create Release PR
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  create-release-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if release PR already exists
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          EXISTING=$(gh pr list --base release --head main --state open --json number --jq '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "pr_number=$EXISTING" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check if release is behind main
+        id: diff
+        run: |
+          git fetch origin release
+          BEHIND=$(git rev-list --count origin/release..origin/main)
+          echo "behind=$BEHIND" >> $GITHUB_OUTPUT
+
+      - name: Create Release PR
+        if: steps.check.outputs.exists == 'false' && steps.diff.outputs.behind != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Collect commit summary
+          COMMITS=$(git log --oneline origin/release..origin/main --no-merges)
+          COMMIT_COUNT=$(echo "$COMMITS" | wc -l | tr -d ' ')
+
+          gh pr create \
+            --base release \
+            --head main \
+            --title "release: main → release (${COMMIT_COUNT} commits)" \
+            --body "$(cat <<EOF
+          ## Release PR (auto-generated)
+
+          main 브랜치의 변경사항을 release로 머지합니다.
+          머지 시 자동으로 버전 bump + 태그 + GitHub Release가 생성됩니다.
+
+          ### Commits (${COMMIT_COUNT})
+          \`\`\`
+          ${COMMITS}
+          \`\`\`
+
+          ### Checklist
+          - [ ] 변경사항 확인
+          - [ ] 테스트 통과 확인
+          EOF
+          )"
+
+      - name: Update existing PR
+        if: steps.check.outputs.exists == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          COMMITS=$(git log --oneline origin/release..origin/main --no-merges)
+          COMMIT_COUNT=$(echo "$COMMITS" | wc -l | tr -d ' ')
+
+          gh pr edit ${{ steps.check.outputs.pr_number }} \
+            --title "release: main → release (${COMMIT_COUNT} commits)" \
+            --body "$(cat <<EOF
+          ## Release PR (auto-generated)
+
+          main 브랜치의 변경사항을 release로 머지합니다.
+          머지 시 자동으로 버전 bump + 태그 + GitHub Release가 생성됩니다.
+
+          ### Commits (${COMMIT_COUNT})
+          \`\`\`
+          ${COMMITS}
+          \`\`\`
+
+          ### Checklist
+          - [ ] 변경사항 확인
+          - [ ] 테스트 통과 확인
+          EOF
+          )"

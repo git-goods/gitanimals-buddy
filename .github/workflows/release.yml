@@ -1,0 +1,132 @@
+name: Release
+
+on:
+  pull_request:
+    branches: [release]
+    types: [closed]
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: release
+          fetch-depth: 0
+
+      - name: Determine version bump
+        id: bump
+        run: |
+          # PR의 커밋 메시지에서 타입 분석
+          COMMITS=$(git log --oneline ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.merge_commit_sha }})
+
+          if echo "$COMMITS" | grep -qi "BREAKING CHANGE"; then
+            echo "type=major" >> $GITHUB_OUTPUT
+          elif echo "$COMMITS" | grep -qi "^[a-f0-9]* feat"; then
+            echo "type=minor" >> $GITHUB_OUTPUT
+          else
+            echo "type=patch" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get current version
+        id: current
+        run: |
+          VERSION=$(jq -r '.version' .claude-plugin/plugin.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Calculate new version
+        id: new
+        run: |
+          IFS='.' read -r major minor patch <<< "${{ steps.current.outputs.version }}"
+          case "${{ steps.bump.outputs.type }}" in
+            major) major=$((major+1)); minor=0; patch=0 ;;
+            minor) minor=$((minor+1)); patch=0 ;;
+            patch) patch=$((patch+1)) ;;
+          esac
+          echo "version=${major}.${minor}.${patch}" >> $GITHUB_OUTPUT
+
+      - name: Update version files
+        run: |
+          NEW_VERSION="${{ steps.new.outputs.version }}"
+          # plugin.json
+          jq --arg v "$NEW_VERSION" '.version = $v' .claude-plugin/plugin.json > tmp.json && mv tmp.json .claude-plugin/plugin.json
+          # marketplace.json (top-level and plugin entry)
+          jq --arg v "$NEW_VERSION" '.version = $v | .plugins[0].version = $v' .claude-plugin/marketplace.json > tmp.json && mv tmp.json .claude-plugin/marketplace.json
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .claude-plugin/plugin.json .claude-plugin/marketplace.json
+          git commit -m "release: v${{ steps.new.outputs.version }}"
+          git push
+
+      - name: Create tag
+        run: |
+          git tag "v${{ steps.new.outputs.version }}"
+          git push origin "v${{ steps.new.outputs.version }}"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV_TAG=$(git tag --sort=-v:refname | head -2 | tail -1)
+          if [ -z "$PREV_TAG" ]; then
+            CHANGELOG=$(git log --oneline --no-merges HEAD)
+          else
+            CHANGELOG=$(git log --oneline --no-merges ${PREV_TAG}..HEAD)
+          fi
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ steps.new.outputs.version }}"
+          name: "v${{ steps.new.outputs.version }}"
+          body: |
+            ## Changes
+            ${{ steps.changelog.outputs.changelog }}
+
+            ## Install / Update
+            ```
+            /plugin marketplace add git-goods/gitanimals-buddy
+            /plugin install gitanimals-buddy@gitanimals-buddy
+            ```
+
+            Already installed? Run:
+            ```
+            /plugin marketplace update gitanimals-buddy
+            /plugin update gitanimals-buddy@gitanimals-buddy
+            ```
+
+      - name: Run tests
+        run: |
+          bash tests/test-mood.sh
+          bash tests/test-bubble.sh
+          bash tests/test-sprite-renderer.sh
+
+  sync-main:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Sync version back to main
+        run: |
+          git fetch origin release
+          git checkout origin/release -- .claude-plugin/plugin.json .claude-plugin/marketplace.json
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .claude-plugin/plugin.json .claude-plugin/marketplace.json
+          git diff --cached --quiet || git commit -m "chore: sync version from release"
+          git push
