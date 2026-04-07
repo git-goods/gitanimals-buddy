@@ -1,3 +1,11 @@
+---
+name: animals
+description: GitAnimals 펫 companion 관리 커맨드
+user-invocable: true
+allowed-tools:
+  - Bash
+---
+
 # /animals
 
 GitAnimals 펫 companion 관리 커맨드
@@ -5,17 +13,39 @@ GitAnimals 펫 companion 관리 커맨드
 ## Usage
 
 - `/animals` — 현재 활성 펫 표시
-- `/animals login <username>` — GitAnimals 유저네임 설정
+- `/animals help` — 사용 가능한 명령어 목록 표시
+- `/animals login` — GitAnimals 웹에서 로그인 후 username 확인
+- `/animals login <username>` — GitAnimals 유저네임 검증 후 설정
 - `/animals list` — 보유 펫 목록 조회
 - `/animals select <pet_type>` — 활성 펫 변경
 - `/animals card` — 현재 펫 상세 정보
 - `/animals usage` — Usage 모니터링 상태 확인
 - `/animals hide` — statusLine에서 펫 숨기기
 - `/animals show` — 펫 다시 표시
+- `/animals-link` — 현재 repo를 플러그인에 symlink 연결
+- `/animals-link status` — symlink 연결 상태 확인
 
 ## Implementation
 
 When the user types `/animals`, run the corresponding script based on the subcommand:
+
+### /animals help
+Show all available commands.
+
+```bash
+echo "🐾 GitAnimals Buddy — 사용 가능한 명령어"
+echo ""
+echo "  /animals              현재 활성 펫 표시"
+echo "  /animals help         이 도움말 표시"
+echo "  /animals login        GitAnimals 웹에서 로그인 후 username 확인"
+echo "  /animals login <id>   유저네임 검증 후 설정"
+echo "  /animals list         보유 펫 목록 조회"
+echo "  /animals select <id>  활성 펫 변경"
+echo "  /animals card         현재 펫 상세 정보"
+echo "  /animals usage        Usage 모니터링 상태 확인"
+echo "  /animals hide         statusLine에서 펫 숨기기"
+echo "  /animals show         펫 다시 표시"
+```
 
 ### /animals (no args)
 Show the current active pet info. Read from `~/.claude/gitanimals.json` and `~/.cache/gitanimals/pet-cache.json`.
@@ -27,29 +57,54 @@ if [ ! -f "$CONFIG" ]; then
   echo "   Run: /animals login <your-github-username>"
   exit 0
 fi
-USERNAME=$(jq -r '.username' "$CONFIG")
+GA_USER=$(jq -r '.username' "$CONFIG")
 ACTIVE=$(jq -r '.active_pet // "auto"' "$CONFIG")
 echo "🐾 GitAnimals Buddy"
-echo "   User: $USERNAME"
+echo "   User: $GA_USER"
 echo "   Active pet: $ACTIVE"
 echo "   Pet is displayed in the statusLine footer."
 ```
 
-### /animals login <username>
-Save the GitHub username to config.
+### /animals login [username]
+브라우저로 gitanimals.org 연결하거나 username 검증 후 config 저장.
+When running this section, set GA_USER to the username argument provided by the user (the word after "login").
 
 ```bash
-USERNAME="$1"
+GA_USER="$ARGUMENTS"
+
+if [ -z "$GA_USER" ]; then
+  echo "🌐 GitAnimals 웹에서 로그인 후 username을 확인하세요."
+  open "https://www.gitanimals.org/en_US/auth/claude-code" 2>/dev/null || \
+    xdg-open "https://www.gitanimals.org/en_US/auth/claude-code" 2>/dev/null || \
+    echo "   👉 https://www.gitanimals.org/en_US/auth/claude-code"
+  echo ""
+  echo "   확인 후 아래 명령어를 실행하세요:"
+  echo "   /animals login <your-username>"
+  exit 0
+fi
+
+# Username 검증
+RESPONSE=$(curl -s --max-time 5 "https://render.gitanimals.org/users/${GA_USER}" 2>/dev/null)
+if [ -z "$RESPONSE" ] || ! echo "$RESPONSE" | jq -e '.personas' >/dev/null 2>&1; then
+  echo "❌ '${GA_USER}' 유저를 찾을 수 없습니다."
+  echo "   GitAnimals에 가입된 GitHub username인지 확인해주세요."
+  echo "   👉 https://www.gitanimals.org"
+  exit 0
+fi
+
 mkdir -p "$HOME/.claude"
 if [ -f "$HOME/.claude/gitanimals.json" ]; then
-  jq --arg u "$USERNAME" '.username = $u' "$HOME/.claude/gitanimals.json" > /tmp/ga-tmp.json && mv /tmp/ga-tmp.json "$HOME/.claude/gitanimals.json"
+  jq --arg u "$GA_USER" '.username = $u' "$HOME/.claude/gitanimals.json" > /tmp/ga-tmp.json && \
+    mv /tmp/ga-tmp.json "$HOME/.claude/gitanimals.json"
 else
-  echo "{\"username\": \"$USERNAME\", \"hidden\": false}" > "$HOME/.claude/gitanimals.json"
+  echo "{\"username\": \"$GA_USER\", \"hidden\": false}" > "$HOME/.claude/gitanimals.json"
 fi
-echo "✅ GitAnimals username set to: $USERNAME"
+
+PET_COUNT=$(echo "$RESPONSE" | jq '[.personas[]? | select(.type != null)] | length' 2>/dev/null)
+echo "✅ GitAnimals 로그인 완료: ${GA_USER}"
+echo "   보유 펫: ${PET_COUNT}마리"
 echo "   Your top pet will appear in the statusLine."
-echo "   Fetching pet data..."
-bash "$(dirname "$0")/../scripts/fetch-pet.sh"
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/fetch-pet.sh" 2>/dev/null &
 ```
 
 ### /animals list
@@ -68,8 +123,10 @@ jq -r '[.personas[]? | select(.type != null)] | sort_by(-(.level | tonumber)) | 
 ### /animals select <pet_type>
 Set active pet.
 
+When running this section, set PET_TYPE to the pet type argument provided by the user (the word after "select").
+
 ```bash
-PET_TYPE="$1"
+PET_TYPE="$ARGUMENTS"
 CONFIG="$HOME/.claude/gitanimals.json"
 jq --arg p "$PET_TYPE" '.active_pet = $p' "$CONFIG" > /tmp/ga-tmp.json && mv /tmp/ga-tmp.json "$CONFIG"
 echo "✅ Active pet set to: $PET_TYPE"
